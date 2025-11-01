@@ -63,6 +63,7 @@ type Actions = {
   addCourse: (name: string) => void;
   addCourseAndReturn: (name: string) => Course;
   addSlotLocal: (slot: Omit<Slot, "id">) => void; // duplicate kontrolü içerir
+  removeSlot: (id: string) => void;
   solveNow: () => Promise<void>;
   reset: () => void;
 };
@@ -122,6 +123,10 @@ export const usePlanner = create<State & Actions>((set, get) => ({
 
     const newSlot: Slot = { ...sNoId, id: `s_${++sid}` };
     set(s => ({ slots: [...s.slots, newSlot], error: undefined }));
+  },
+
+  removeSlot: (id) => {
+    set(s => ({ slots: s.slots.filter(sl => sl.id !== id) }));
   },
 
   solveNow: async () => {
