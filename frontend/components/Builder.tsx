@@ -1,41 +1,103 @@
 import { useMemo } from "react";
 import { usePlanner } from "../store/usePlanner";
 import CourseForm from "./CourseForm";
-import WeeklyGrid from "./WeeklyGrid";
+
+const DAY_NAME: Record<0|1|2|3|4|5|6, string> = {
+  0: "Pazar",
+  1: "Pazartesi",
+  2: "Salı",
+  3: "Çarşamba",
+  4: "Perşembe",
+  5: "Cuma",
+  6: "Cumartesi",
+};
 
 export default function Builder() {
-  const { courses, slots, placed, loading, error } = usePlanner();
+  const { courses, slots, error } = usePlanner();
 
-  const preview = useMemo(() => {
-    return slots.map(s => {
+  // Görüntülenecek satırlar: ders adı, gün, saat, sınıf
+  const rows = useMemo(() => {
+    const data = slots.map(s => {
       const c = courses.find(x => x.id === s.courseId);
       return {
-        courseId: s.courseId,
-        courseName: c?.name || "Bilinmeyen",
-        dayOfWeek: s.dayOfWeek,
-        start: s.start,
-        end: s.end,
-        room: s.room
+        course: c?.name ?? "Bilinmeyen",
+        day: DAY_NAME[s.dayOfWeek as 0|1|2|3|4|5|6],
+        time: `${s.start}-${s.end}`,
+        room: s.room ?? ""
       };
+    });
+
+    // Gün + saat sıralı gösterim
+    const dayOrder = (d: string) =>
+      ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"].indexOf(d);
+    return data.sort((a,b) => {
+      const da = dayOrder(a.day) - dayOrder(b.day);
+      if (da !== 0) return da;
+      return a.time.localeCompare(b.time);
     });
   }, [slots, courses]);
 
   return (
-    <div className="container" style={{display:'grid', gap:16}}>
-      <h2 className="title">Planner Builder</h2>
+    <div className="container" style={{ display: "grid", gap: 16 }}>
+      <h2 className="title">Taslak</h2>
+
       <CourseForm />
-      <div className="row" style={{alignItems:'stretch'}}>
-        <div className="card" style={{flex:1, minWidth:0}}>
-          <h3 className="title">Taslak</h3>
-          <WeeklyGrid items={preview}/>
-        </div>
-        <div className="card" style={{flex:1, minWidth:0}}>
-          <h3 className="title">Çözüm</h3>
-          {loading ? <div className="muted">Hesaplanıyor...</div>
-                   : placed.length ? <WeeklyGrid items={placed}/>
-                   : <div className="muted">Henüz çözüm yok.</div>}
-          {error && <div className="danger">{error}</div>}
-        </div>
+
+      <div className="card" style={{ overflowX: "auto" }}>
+        <h3 className="title">Girilen Dersler</h3>
+
+        {rows.length === 0 ? (
+          <div className="muted">Henüz bir şey eklemedin. Üstten ders ve saat gir.</div>
+        ) : (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "2fr 1fr 1fr 1fr",
+              gap: 8,
+              alignItems: "center"
+            }}
+          >
+            {/* Header */}
+            <div style={{ fontWeight: 700, opacity: 0.9 }}>Ders adı</div>
+            <div style={{ fontWeight: 700, opacity: 0.9 }}>Gün</div>
+            <div style={{ fontWeight: 700, opacity: 0.9 }}>Saat</div>
+            <div style={{ fontWeight: 700, opacity: 0.9 }}>Sınıf</div>
+
+            {/* Rows */}
+            {rows.map((r, i) => (
+              <div
+                key={`${r.course}-${r.day}-${r.time}-${r.room}-${i}`}
+                style={{
+                  gridColumn: "1 / -1",
+                  border: "1px solid var(--border)",
+                  borderRadius: 10,
+                  background: "#0f141a",
+                  padding: "8px 10px",
+                }}
+              >
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "2fr 1fr 1fr 1fr",
+                    gap: 8,
+                    alignItems: "center"
+                  }}
+                >
+                  <div style={{ whiteSpace: "pre-wrap" }}>{r.course}</div>
+                  <div>{r.day}</div>
+                  <div>{r.time}</div>
+                  <div>{r.room}</div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {error && (
+          <div className="danger" style={{ marginTop: 8 }}>
+            {error}
+          </div>
+        )}
       </div>
     </div>
   );
