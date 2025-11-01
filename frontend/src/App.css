@@ -1,0 +1,88 @@
+:root{
+  --bg:#0b0d10;
+  --panel:#12161b;
+  --muted:#9aa4af;
+  --text:#e6eaee;
+  --primary:#5aa6ff;
+  --border:#222a33;
+  --success:#30c48d;
+  --danger:#ff5a7a;
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{
+  margin:0;
+  background:var(--bg);
+  color:var(--text);
+  font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+}
+
+/* ---- Layout ---- */
+.container{max-width:1200px;margin:0 auto;padding:16px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:16px}
+.row{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.title{margin:8px 0}
+.muted{color:var(--muted)}
+.danger{color:var(--danger)}
+
+/* ---- Topbar ---- */
+.topbar{
+  position:sticky;top:0;z-index:10;
+  background:var(--panel);
+  border-bottom:1px solid var(--border);
+}
+.topbar-inner{
+  display:flex;justify-content:space-between;align-items:center;
+  padding:10px 0;
+}
+
+/* ---- Controls ---- */
+.btn{
+  cursor:pointer;
+  border:1px solid var(--border);
+  background:#0f141a;
+  color:var(--text);
+  border-radius:10px;
+  padding:10px 14px;
+}
+.btn:hover{border-color:#2b3642}
+.btn-primary{background:var(--primary);border-color:transparent;color:#0b0d10}
+
+.input,.select{
+  border:1px solid var(--border);
+  background:#0f141a;
+  color:var(--text);
+  border-radius:10px;
+  padding:10px;
+  min-width:120px;
+}
+
+/* ---- Weekly Grid ---- */
+.grid-wrap{overflow:hidden}
+.grid{
+  display:grid;
+  grid-template-columns: 90px repeat(7, 1fr);
+  gap:6px;
+}
+.grid-time{font-size:12px;color:var(--muted)}
+.grid-cell{
+  border:1px solid var(--border);
+  height:30px;
+  position:relative;
+  background:var(--panel);
+}
+.grid-day{
+  text-align:center;
+  font-weight:700;
+}
+.grid-event{
+  position:absolute;
+  background:rgba(90,166,255,0.18);
+  border:1px solid rgba(90,166,255,0.45);
+  border-radius:10px;
+  padding:6px 8px;
+  overflow:hidden;
+}
+.grid-event-title{font-weight:700;font-size:12px}
+.grid-event-meta{font-size:12px;color:var(--muted)}
