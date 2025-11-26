@@ -4,10 +4,11 @@
     "module": "commonjs",
     "rootDir": "src",
     "outDir": "dist",
-    "moduleResolution": "node",
     "esModuleInterop": true,
     "resolveJsonModule": true,
-    "skipLibCheck": true,
-    "strict": false
-  }
+    "moduleResolution": "node",
+    "strict": false,
+    "skipLibCheck": true
+  },
+  "include": ["src"]
 }

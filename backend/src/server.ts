@@ -1,29 +1,47 @@
-import * as path from "path";
+import path from "path";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import { solveRouter } from "./routes.solve";
+
+
 import { courses } from "./routes.courses";
 import { slots } from "./routes.slots";
 
 dotenv.config();
 
 const app = express();
+
 app.use(cors());
 app.use(express.json());
+app.use("/api/courses", courses);
+app.use("/api/slots", slots);
+app.use("/api/solve", solveRouter);
 
-app.use(express.static(path.join(process.cwd(), "public")));
+
+// public klasörü (backend'in bir üstünde "public" varsa)
+const publicDir = path.join(__dirname, "..", "public");
+app.use(express.static(publicDir));
+
 app.get("/", (_req, res) => {
-  res.send("Planner API is running. Try <a href=\"/health\">/health</a> or <code>/api/courses</code>.");
+  res.send(
+    'Planner API is running. Try <a href="/health">/health</a> or <code>/api/courses</code>.'
+  );
 });
 
 app.use("/api/courses", courses);
 app.use("/api/slots", slots);
 
 app.get("/health", (_req, res) => {
-  res.json({ ok: true, service: "planner-api", ts: new Date().toISOString() });
+  res.json({
+    ok: true,
+    service: "planner-api",
+    ts: new Date().toISOString(),
+  });
 });
 
-const PORT = process.env.PORT || 4000;
+const PORT = Number(process.env.PORT) || 4000;
+
 app.listen(PORT, () => {
   console.log(`planner-api listening on http://localhost:${PORT}`);
 });

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Solve Test</title>
+</head>
+<body>
+  <h1>POST /api/solve Test</h1>
+
+  <button onclick="send()">Send Request</button>
+
+  <pre id="out"></pre>
+
+  <script>
+    async function send() {
+      const body = {
+        courses: [
+          { id: "c1", code: "CS101", name: "Intro" }
+        ],
+        slots: [
+          { id: "s1", courseId: "c1", dayOfWeek: 1, startTime: "09:00", endTime: "10:50" }
+        ]
+      };
+
+      const res = await fetch("http://localhost:4000/api/solve", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body)
+      });
+
+      const data = await res.json();
+      document.getElementById("out").textContent = JSON.stringify(data, null, 2);
+    }
+  </script>
+</body>
+</html>

@@ -1,49 +1,46 @@
 import { Router } from "express";
 import { prisma } from "./prisma";
-import { z } from "zod";
 
 export const slots = Router();
 
-const hhmm = /^([01]\d|2[0-3]):[0-5]\d$/;
-
-const SlotCreate = z.object({
-  courseId: z.string().min(1),
-  dayOfWeek: z.number().int().min(0).max(6),
-  startTime: z.string().regex(hhmm, "HH:MM"),
-  endTime: z.string().regex(hhmm, "HH:MM"),
-  room: z.string().optional(),
-});
-
-slots.get("/", async (req, res) => {
-  const { courseId } = req.query as { courseId?: string };
-  const where = courseId ? { courseId } : {};
-  const data = await prisma.courseSlot.findMany({ where });
-  res.json(data);
-});
-
+// Slot ekle
 slots.post("/", async (req, res) => {
   try {
-    const { courseId, dayOfWeek, startTime, endTime, room } = SlotCreate.parse(req.body);
+    const { courseId, dayOfWeek, startTime, endTime, room } = req.body;
 
-    if (startTime >= endTime) {
-      return res.status(400).json({ message: "startTime endTime'den küçük olmalı" });
+    if (!courseId || dayOfWeek === undefined || !startTime || !endTime) {
+      return res.status(400).json({
+        error: "courseId, dayOfWeek, startTime, endTime are required",
+      });
     }
 
     const s = await prisma.courseSlot.create({
-      data: { courseId, dayOfWeek, startTime, endTime, room },
+      data: {
+        courseId,
+        dayOfWeek,
+        startTime,
+        endTime,
+        room,
+      },
     });
 
     res.status(201).json(s);
-  } catch (err: any) {
-    if (err?.issues) {
-      return res.status(400).json({ errors: err.issues });
-    }
-    return res.status(500).json({ message: "unexpected_error" });
+  } catch (err) {
+    console.error("POST /api/slots error:", err);
+    res.status(500).json({ error: "Failed to create slot" });
   }
 });
 
-slots.delete("/:id", async (req, res) => {
-  const { id } = req.params;
-  await prisma.courseSlot.delete({ where: { id } });
-  res.status(204).end();
+// Slotları listele (isteğe bağlı courseId filtresiyle)
+slots.get("/", async (req, res) => {
+  try {
+    const { courseId } = req.query as { courseId?: string };
+    const where = courseId ? { courseId } : {};
+
+    const data = await prisma.courseSlot.findMany({ where });
+    res.json(data);
+  } catch (err) {
+    console.error("GET /api/slots error:", err);
+    res.status(500).json({ error: "Failed to fetch slots" });
+  }
 });
