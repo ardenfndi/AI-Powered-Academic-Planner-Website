@@ -1,5 +1,6 @@
 import "./App.css";
 import Builder from "../components/Builder";
+import ImageUpload from "../components/ImageUpload";
 import { usePlanner } from "../store/usePlanner";
 
 export default function App() {
@@ -27,6 +28,9 @@ export default function App() {
       >
         {/* Ders & slot ekleme UI */}
         <Builder />
+
+        {/* Fotoğraftan ders okuma bölümü */}
+        <ImageUpload />
 
         {/* Ders Programını Oluştur bölümü */}
         <div
@@ -68,7 +72,6 @@ export default function App() {
             </button>
           </div>
 
-          {/* Hata */}
           {error && (
             <div
               style={{
@@ -84,7 +87,6 @@ export default function App() {
             </div>
           )}
 
-          {/* Sonuç kartı – SADECE AI AÇIKLAMASI, JSON YOK */}
           {(reasoning || placed.length > 0) && (
             <div
               style={{
@@ -112,11 +114,9 @@ export default function App() {
                   </p>
                 </>
               )}
-              {/* Seçilen Slotlar JSON BLOĞU BURADAN SİLİNDİ */}
             </div>
           )}
 
-          {/* İlk açılış mesajı */}
           {!reasoning && placed.length === 0 && !error && !loading && (
             <p style={{ fontSize: "13px", opacity: 0.8 }}>
               Üstten ders ve slot ekledikten sonra{" "}

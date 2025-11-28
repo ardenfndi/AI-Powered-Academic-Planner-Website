@@ -1,12 +1,13 @@
+// backend/src/server.ts
 import path from "path";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import { solveRouter } from "./routes.solve";
-
 
 import { courses } from "./routes.courses";
 import { slots } from "./routes.slots";
+import { solveRouter } from "./routes.solve";
+import { imageRouter } from "./routes.image";
 
 dotenv.config();
 
@@ -14,12 +15,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api/courses", courses);
-app.use("/api/slots", slots);
-app.use("/api/solve", solveRouter);
 
-
-// public klasörü (backend'in bir üstünde "public" varsa)
+// public klasörü (istemiyorsan da dursun, zararı yok)
 const publicDir = path.join(__dirname, "..", "public");
 app.use(express.static(publicDir));
 
@@ -31,6 +28,8 @@ app.get("/", (_req, res) => {
 
 app.use("/api/courses", courses);
 app.use("/api/slots", slots);
+app.use("/api/solve", solveRouter);
+app.use("/api/parse-image", imageRouter); // 🔥 BURASI OLAYIN KALBİ
 
 app.get("/health", (_req, res) => {
   res.json({
