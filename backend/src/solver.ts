@@ -1,5 +1,3 @@
-// backend/src/solver.ts
-
 export type CourseInput = {
   id: string;
   code: string;
@@ -11,12 +9,12 @@ export type SlotInput = {
   courseId: string;
   dayOfWeek: number; // 0=Sunday, 1=Monday...
   startTime: string; // "HH:mm"
-  endTime: string;   // "HH:mm"
+  endTime: string; // "HH:mm"
   room?: string;
 };
 
 export type PreferencesInput = {
-  // Şimdilik boş, istersen sonra preferredDays vs ekleriz
+  // Placeholder for future preferences
 };
 
 export type SolveItem = {
@@ -48,14 +46,21 @@ function overlaps(a: SlotInput, b: SlotInput): boolean {
 
 function dayName(d: number): string {
   switch (d) {
-    case 1: return "Monday";
-    case 2: return "Tuesday";
-    case 3: return "Wednesday";
-    case 4: return "Thursday";
-    case 5: return "Friday";
-    case 6: return "Saturday";
+    case 1:
+      return "Monday";
+    case 2:
+      return "Tuesday";
+    case 3:
+      return "Wednesday";
+    case 4:
+      return "Thursday";
+    case 5:
+      return "Friday";
+    case 6:
+      return "Saturday";
     case 0:
-    default: return "Sunday";
+    default:
+      return "Sunday";
   }
 }
 
@@ -92,7 +97,7 @@ export function solveSchedule(
   const courseById = new Map<string, CourseInput>();
   for (const c of courses) courseById.set(c.id, c);
 
-  // Slot + courseName + baseCourseName ilişkisi
+  // Slot enriched with course names
   type RichSlot = SlotInput & {
     courseName: string;
     baseCourse: string;
@@ -119,7 +124,7 @@ export function solveSchedule(
     };
   }
 
-  // Aynı "base course" (örn. CS101) için bütün section slotlarını grupla
+  // Group all sections by base course (e.g., CS101)
   const groups = new Map<string, RichSlot[]>();
   for (const rs of richSlots) {
     if (!groups.has(rs.baseCourse)) groups.set(rs.baseCourse, []);
@@ -140,7 +145,7 @@ export function solveSchedule(
   }
 
   function scoreSolution(sol: PartialSolution): number {
-    // Basit skor: kaç farklı baseCourse aldıysa o kadar puan
+    // Score: count of distinct base courses selected
     return sol.chosenBaseCourses.size;
   }
 
@@ -158,10 +163,10 @@ export function solveSchedule(
     const base = baseCourses[index];
     const options = groups.get(base) || [];
 
-    // 1) Bu dersi hiç almama opsiyonu (skoru düşürür ama bazen tek çözüm bu olabilir)
+    // Option 1: skip this base course
     backtrack(index + 1, current);
 
-    // 2) Bu ders için her bir section'ı tek tek dene
+    // Option 2: try each section for this base course
     for (const slot of options) {
       if (!isCompatible(current.chosenSlots, slot)) continue;
       current.chosenSlots.push(slot);
@@ -186,13 +191,13 @@ export function solveSchedule(
     };
   }
 
-  // best -> SolveItem listesine çevir
+  // Convert best selection to SolveItems
   const items: SolveItem[] = best.chosenSlots.map((s) => ({
     courseId: s.courseId,
     slotId: s.id,
   }));
 
-  // Reasoning text: insan gibi yaz
+  // Build reasoning text
   const lines: string[] = [];
   lines.push(
     "I selected at most one section for each base course and avoided time overlaps for a single student."
@@ -203,7 +208,7 @@ export function solveSchedule(
     const c = courseById.get(s.courseId);
     const courseLabel = c ? c.name : s.courseName;
     lines.push(
-      `- ${courseLabel}: ${dayName(s.dayOfWeek)} ${s.startTime}–${s.endTime}${
+      `- ${courseLabel}: ${dayName(s.dayOfWeek)} ${s.startTime}ë"${s.endTime}${
         s.room ? ` in ${s.room}` : ""
       }`
     );
@@ -211,9 +216,7 @@ export function solveSchedule(
 
   const skipped: string[] = [];
   for (const base of baseCourses) {
-    const hasChosen = best.chosenSlots.some(
-      (s) => s.baseCourse === base
-    );
+    const hasChosen = best.chosenSlots.some((s) => s.baseCourse === base);
     if (!hasChosen) skipped.push(base);
   }
 

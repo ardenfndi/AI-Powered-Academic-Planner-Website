@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 
 export const courses = Router();
 
-// Tüm dersleri listele
+// List all courses
 courses.get("/", async (_req, res) => {
   try {
     const data = await prisma.course.findMany({
@@ -16,7 +16,7 @@ courses.get("/", async (_req, res) => {
   }
 });
 
-// Ders ekle
+// Create a course
 courses.post("/", async (req, res) => {
   try {
     const { code, name } = req.body;

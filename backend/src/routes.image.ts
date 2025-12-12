@@ -1,4 +1,3 @@
-// backend/src/routes.image.ts
 import { Router } from "express";
 import multer from "multer";
 import { ai } from "./client.openai";
@@ -7,7 +6,7 @@ const upload = multer({ storage: multer.memoryStorage() });
 
 export const imageRouter = Router();
 
-// Kendi basit file tipimizi tanımlayalım, Express.Multer ile uğraşmıyoruz
+// Simple file shape; avoiding Express.Multer types
 type UploadedFile = {
   buffer: Buffer;
   mimetype: string;
@@ -15,7 +14,7 @@ type UploadedFile = {
 
 imageRouter.post("/", upload.single("file"), async (req, res) => {
   try {
-    // Multer dosyası
+    // Multer file
     const file = (req as any).file as UploadedFile | undefined;
 
     if (!file) {
@@ -69,8 +68,7 @@ Use English day names like Monday, Tuesday, Wednesday, Thursday, Friday.
         .json({ error: "Empty response from AI while parsing image" });
     }
 
-    // response_format: json_object → genelde string JSON gelir ama
-    // bazen array/text kombinasyonu da olabiliyor
+    // response_format: json_object usually returns JSON text but can be array/text
     let parsed: any;
 
     if (typeof content === "string") {

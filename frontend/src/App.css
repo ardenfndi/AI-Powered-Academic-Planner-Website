@@ -1,138 +1,324 @@
+/* =========================================
+   GLOBAL
+========================================= */
 :root {
-  --bg:#0b0d10;
-  --panel:#12161b;
-  --muted:#9aa4af;
-  --text:#e6eaee;
-  --primary:#5aa6ff;
-  --border:#222a33;
-  --success:#30c48d;
-  --danger:#ff5a7a;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+    "Segoe UI", sans-serif;
 }
 
-/* ---- Base ---- */
-* { box-sizing: border-box; }
-html, body, #root { height: 100%; }
 body {
   margin: 0;
-  background: var(--bg);
-  color: var(--text);
-  font-family: Inter, system-ui, Segoe UI, Roboto, Arial, sans-serif;
+  background: var(--color-bg);
+  color: var(--color-text);
 }
 
-/* ---- Layout ---- */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 16px;
+#root {
+  min-height: 100vh;
 }
-.card {
-  background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 16px;
-  padding: 16px;
+
+/* =========================================
+   MAIN PLANNER LAYOUT
+========================================= */
+
+.planner-main {
+  flex: 1;
+  padding: 24px 32px;
+  color: var(--color-text);
+  background: var(--color-surface);
+  overflow-y: auto;
 }
-.row {
+
+.planner-header {
   display: flex;
-  gap: 12px;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 18px;
 }
-.title { margin: 8px 0; }
-.muted { color: var(--muted); }
-.danger { color: var(--danger); }
 
-/* ---- Topbar ---- */
-.topbar {
-  position: sticky;
-  top: 0;
-  z-index: 10;
-  background: var(--panel);
-  border-bottom: 1px solid var(--border);
+.planner-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
 }
-.topbar-inner {
+
+.planner-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: var(--color-muted);
+}
+
+.planner-badge {
+  font-size: 11px;
+  color: var(--color-muted);
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--color-border);
+  background: var(--color-badge-bg);
+}
+
+/* =========================================
+   PANELS
+========================================= */
+
+.planner-row-top {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-card {
+  background: var(--color-card-bg);
+  border-radius: 18px;
+  border: 1px solid var(--color-border-strong);
+  box-shadow: var(--color-shadow-strong);
+  padding: 16px 18px 18px;
+}
+
+.panel-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 0;
+  margin-bottom: 10px;
 }
 
-/* ---- Controls ---- */
-.btn {
-  cursor: pointer;
-  border: 1px solid var(--border);
-  background: #0f141a;
-  color: var(--text);
-  border-radius: 10px;
-  padding: 10px 14px;
-  transition: border-color 0.2s ease;
-}
-.btn:hover { border-color: #2b3642; }
-.btn-primary {
-  background: var(--primary);
-  border-color: transparent;
-  color: #0b0d10;
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
 }
 
-.input, .select {
-  border: 1px solid var(--border);
-  background: #0f141a;
-  color: var(--text);
-  border-radius: 10px;
-  padding: 10px;
-  min-width: 120px;
+.panel-subtitle {
+  font-size: 12px;
+  color: var(--color-muted);
 }
 
-/* ---- Weekly Grid ---- */
-.grid-wrap { overflow: hidden; }
-.grid {
+.panel-body {
+  font-size: 13px;
+}
+
+.muted {
+  color: var(--color-muted);
+  font-size: 12px;
+}
+
+/* =========================================
+   SCHEDULE GRID
+========================================= */
+
+.schedule-grid {
+  margin-top: 6px;
+  border-radius: 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-panel-end);
+  overflow: hidden;
+}
+
+.schedule-header-row,
+.schedule-row {
   display: grid;
-  grid-template-columns: 90px repeat(7, 1fr);
-  gap: 6px;
-  position: relative;
-}
-.grid-day {
-  text-align: center;
-  font-weight: 700;
-  line-height: 26px;
-}
-.grid-time {
-  font-size: 12px;
-  color: var(--muted);
-  height: 32px;
-  line-height: 32px;
-}
-.grid-cell {
-  border: 1px solid var(--border);
-  height: 32px;
-  background: var(--panel);
-  position: relative;
-}
-.grid-event {
-  position: absolute;
-  background: rgba(90,166,255,0.18);
-  border: 1px solid rgba(90,166,255,0.45);
-  border-radius: 10px;
-  padding: 6px 8px;
-  overflow: hidden;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-}
-.grid-event-title {
-  font-weight: 700;
-  font-size: 12px;
-  margin-bottom: 2px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-}
-.grid-event-meta {
-  font-size: 12px;
-  color: var(--muted);
-  line-height: 1.2;
+  grid-template-columns: 70px repeat(5, minmax(0, 1fr));
 }
 
-/* Overlay fix */
-.grid-overlay {
-  position: relative;
-  pointer-events: none;
-  margin-top: -99999px;
+.schedule-header-row {
+  background: linear-gradient(90deg, var(--color-surface), var(--color-panel-end));
+  border-bottom: 1px solid var(--color-grid);
+}
+
+.schedule-day-col,
+.schedule-time-col {
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.schedule-row:nth-child(odd) {
+  background: var(--color-panel-end);
+}
+
+.schedule-row:nth-child(even) {
+  background: var(--color-panel-start);
+}
+
+.schedule-cell {
+  border-left: 1px solid var(--color-grid);
+  min-height: 32px;
+}
+
+/* =========================================
+   BUTTONS
+========================================= */
+
+.primary-btn {
+  border-radius: 999px;
+  border: none;
+  font-size: 13px;
+  padding: 8px 16px;
+  cursor: pointer;
+  font-weight: 500;
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-start),
+    var(--color-accent-end)
+  );
+  color: white;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.6);
+}
+
+.primary-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+  box-shadow: none;
+}
+
+.primary-btn:not(:disabled):hover {
+  filter: brightness(1.05);
+}
+
+/* =========================================
+   FILE INPUT
+========================================= */
+
+.planner-main input[type="file"] {
+  font-size: 12px;
+  color: var(--color-text);
+}
+
+.planner-main input[type="file"]::file-selector-button {
+  border-radius: 999px;
+  border: 1px solid var(--color-accent-start);
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-start),
+    var(--color-accent-end)
+  );
+  color: #f9fafb;
+  padding: 6px 14px;
+  margin-right: 10px;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.planner-main input[type="file"]::file-selector-button:hover {
+  filter: brightness(1.05);
+}
+
+.planner-main input[type="file"]::file-selector-button:active {
+  filter: brightness(0.95);
+}
+
+/* =========================================
+   FORM ELEMENTS (GENEL)
+========================================= */
+
+.planner-main select,
+.planner-main input[type="text"],
+.planner-main input[type="number"],
+.planner-main input[type="time"] {
+  background: var(--color-panel-end);
+  color: var(--color-text);
+  border-radius: 10px;
+  border: 1px solid var(--color-border);
+  padding: 6px 10px;
+  font-size: 12px;
+  outline: none;
+}
+
+.planner-main select:focus,
+.planner-main input[type="text"]:focus,
+.planner-main input[type="number"]:focus,
+.planner-main input[type="time"]:focus {
+  border-color: var(--color-accent-start);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.5);
+}
+
+/* =========================================
+   BUILDER UI
+========================================= */
+
+.builder-container input[type="text"],
+.builder-container input[type="number"],
+.builder-container select {
+  width: 100%;
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  transition: 0.15s ease;
+}
+
+.builder-container select {
+  appearance: auto;
+  -webkit-appearance: auto;
+  -moz-appearance: auto;
+  padding-right: 10px;
+}
+
+.builder-container input:focus,
+.builder-container select:focus {
+  border-color: var(--color-accent-start);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
+  outline: none;
+}
+
+.builder-grid {
+  display: grid;
+  grid-template-columns: 1.6fr 1.2fr 1fr 1fr auto;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.builder-container .add-btn {
+  background: linear-gradient(
+    135deg,
+    var(--color-accent-start),
+    var(--color-accent-end)
+  );
+  color: #f9fafb;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: 0.15s ease;
+}
+
+.builder-container .add-btn:hover {
+  filter: brightness(1.08);
+}
+
+.builder-container .add-btn:active {
+  transform: scale(0.97);
+}
+
+.builder-room {
+  background: var(--color-input-bg);
+  border: 1px solid var(--color-input-border);
+  border-radius: 10px;
+  padding: 8px 10px;
+  font-size: 13px;
+  color: var(--color-text);
+  margin-top: 10px;
+  width: 100%;
+}
+
+/* =========================================
+   RESPONSIVE
+========================================= */
+
+@media (max-width: 900px) {
+  .planner-row-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .planner-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
 }

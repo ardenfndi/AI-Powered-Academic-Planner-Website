@@ -1,5 +1,5 @@
-import WeeklyGrid from "../../components/WeeklyGrid";
-import { usePlanner } from "../../store/usePlanner";
+import WeeklyGrid from "../components/WeeklyGrid";
+import { usePlanner } from "../../../store/usePlanner";
 
 export default function Schedule() {
   const { placed } = usePlanner();

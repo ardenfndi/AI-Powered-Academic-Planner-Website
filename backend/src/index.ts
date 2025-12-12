@@ -9,19 +9,16 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Static files (optional)
+// Serve static files
 app.use(express.static(path.join(process.cwd(), "public")));
 
-// Test route
 app.get("/", (_req, res) => {
-  res.send("Backend is running! /api/solve ve /api/parse-image aktif.");
+  res.send("Backend is running! /api/solve and /api/parse-image are active.");
 });
 
-// Routers
 app.use("/api/solve", solveRouter);
 app.use("/api/parse-image", imageRouter);
 
-// Health check
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });
 });

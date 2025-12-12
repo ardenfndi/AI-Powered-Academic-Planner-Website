@@ -1,7 +1,7 @@
 import { create } from "zustand";
 
 /* ---------- Types ---------- */
-export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0=Pazar
+export type DayOfWeek = 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0=Sunday
 
 export interface Course {
   id: string;
@@ -13,7 +13,7 @@ export interface Slot {
   courseId: string;
   dayOfWeek: DayOfWeek;
   start: string; // "HH:mm"
-  end: string;   // "HH:mm"
+  end: string; // "HH:mm"
   room?: string | null;
 }
 
@@ -23,7 +23,7 @@ export interface PlacedItem {
   dayOfWeek: DayOfWeek;
   start: string;
   end: string;
-  // BURAYI DÜZELTTİK: optional değil, her zaman var
+  // Always present
   room: string | null;
 }
 
@@ -84,7 +84,7 @@ const api = {
     const data: BackendSolveResponse = await res.json();
 
     // Backend: items = {courseId, slotId}
-    // Bizim UI: placed = gerçek slot + kurs adı
+    // UI: placed = slot with course name
     const raw = data.items.map((it): PlacedItem | null => {
       const slot = slots.find((s) => s.id === it.slotId);
       const course = courses.find((c) => c.id === it.courseId);
@@ -100,7 +100,7 @@ const api = {
       };
     });
 
-    // BURAYI DA DÜZELTTİK: type predicate düzgün
+    // Type guard for filtering nulls
     const placed: PlacedItem[] = raw.filter(
       (x): x is PlacedItem => x !== null
     );

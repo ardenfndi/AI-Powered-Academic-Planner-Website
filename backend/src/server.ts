@@ -1,4 +1,3 @@
-// backend/src/server.ts
 import path from "path";
 import express from "express";
 import cors from "cors";
@@ -16,7 +15,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// public klasörü (istemiyorsan da dursun, zararı yok)
+// Serve public assets
 const publicDir = path.join(__dirname, "..", "public");
 app.use(express.static(publicDir));
 
@@ -29,7 +28,7 @@ app.get("/", (_req, res) => {
 app.use("/api/courses", courses);
 app.use("/api/slots", slots);
 app.use("/api/solve", solveRouter);
-app.use("/api/parse-image", imageRouter); // 🔥 BURASI OLAYIN KALBİ
+app.use("/api/parse-image", imageRouter);
 
 app.get("/health", (_req, res) => {
   res.json({

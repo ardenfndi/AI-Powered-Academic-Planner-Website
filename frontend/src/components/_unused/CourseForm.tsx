@@ -1,18 +1,18 @@
 import React, { useMemo, useState } from "react";
 import { usePlanner, type DayOfWeek, type Course } from "../store/usePlanner";
-import Button from "./Button";
-import Input from "./Input";
-import Select from "./Select";
-import TimeWheel from "./TimeWheel";
+import Button from "./_unused/Button";
+import Input from "./_unused/Input";
+import Select from "./_unused/Select";
+import TimeWheel from "./_unused/TimeWheel";
 
 const dayOptions = [
-  { v: 1, t: "Pazartesi" },
-  { v: 2, t: "Salı" },
-  { v: 3, t: "Çarşamba" },
-  { v: 4, t: "Perşembe" },
-  { v: 5, t: "Cuma" },
-  { v: 6, t: "Cumartesi" },
-  { v: 0, t: "Pazar" }
+  { v: 1, t: "Monday" },
+  { v: 2, t: "Tuesday" },
+  { v: 3, t: "Wednesday" },
+  { v: 4, t: "Thursday" },
+  { v: 5, t: "Friday" },
+  { v: 6, t: "Saturday" },
+  { v: 0, t: "Sunday" }
 ];
 
 const norm = (s: string) => s.trim().toLowerCase();
@@ -52,7 +52,7 @@ export default function CourseForm() {
         }}
       >
         <Input
-          placeholder="Ders (örn: CS302)"
+          placeholder="Course (e.g., CS302)"
           value={courseName}
           onChange={e => setCourseName(e.target.value)}
           style={{ flex: "1 1 280px", minWidth: 240 }}
@@ -68,12 +68,12 @@ export default function CourseForm() {
           ))}
         </Select>
 
-        {/* Saat belirleme: wheel tarzı iki dropdown (saat + dakika) */}
+        {/* Time selectors */}
         <TimeWheel value={start} onChange={setStart} style={{ flex: "0 0 210px" }} />
         <TimeWheel value={end}   onChange={setEnd}   style={{ flex: "0 0 210px" }} />
 
         <Input
-          placeholder="Oda (ops.)"
+          placeholder="Room (optional)"
           value={room}
           onChange={e => setRoom(e.target.value)}
           style={{ flex: "0 0 160px", minWidth: 140 }}
@@ -83,7 +83,7 @@ export default function CourseForm() {
           onClick={onAddSlot}
           style={{ flex: "0 0 auto", whiteSpace: "nowrap" }}
         >
-          Slot ekle
+          Add Slot
         </Button>
       </div>
     </div>

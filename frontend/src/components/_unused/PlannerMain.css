@@ -1,0 +1,229 @@
+.planner-main {
+  flex: 1;
+  padding: 24px 32px;
+  color: #e5e7eb;
+  background: #050814;
+  overflow-y: auto;
+}
+
+/* Üst başlık */
+
+.planner-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 18px;
+}
+
+.planner-title {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.planner-subtitle {
+  margin-top: 4px;
+  font-size: 13px;
+  color: #9ca3af;
+}
+
+.planner-badge {
+  font-size: 11px;
+  color: #9ca3af;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid #1f2937;
+  background: radial-gradient(circle at top left, #111827, #020617);
+}
+
+/* Kart yapısı */
+
+.planner-row-top {
+  display: grid;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.panel-card {
+  background: radial-gradient(circle at top left, #070d1f, #020617);
+  border-radius: 18px;
+  border: 1px solid #171c27;
+  box-shadow: 0 20px 45px rgba(0, 0, 0, 0.6);
+  padding: 16px 18px 18px;
+}
+
+.panel-primary {
+  min-height: 150px;
+}
+
+.panel-secondary {
+  min-height: 150px;
+}
+
+.panel-wide {
+  margin-top: 14px;
+}
+
+.panel-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.panel-title {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.panel-subtitle {
+  font-size: 12px;
+  margin-top: 2px;
+  color: #9ca3af;
+}
+
+.panel-body {
+  font-size: 13px;
+}
+
+.empty-state {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(15, 23, 42, 0.8);
+  border: 1px dashed #273549;
+}
+
+/* Form satırı */
+
+.form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2.3fr) minmax(0, 1.4fr) minmax(0, 3.2fr) minmax(0, 2fr) auto;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.input {
+  background: #020617;
+  border-radius: 10px;
+  border: 1px solid #1f2937;
+  padding: 7px 9px;
+  font-size: 12px;
+  color: #e5e7eb;
+}
+
+.input:focus {
+  outline: none;
+  border-color: #4f46e5;
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.5);
+}
+
+.text-input {
+  width: 100%;
+}
+
+.select-input {
+  width: 100%;
+}
+
+.room-input {
+  width: 100%;
+}
+
+.time-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.time-separator,
+.time-range-separator {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+/* Buton */
+
+.btn {
+  border-radius: 999px;
+  border: none;
+  font-size: 12px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.6);
+}
+
+.btn-primary:hover {
+  filter: brightness(1.05);
+}
+
+/* Schedule grid */
+
+.schedule-grid {
+  margin-top: 6px;
+  border-radius: 14px;
+  border: 1px solid #1f2937;
+  background: #020617;
+  overflow: hidden;
+}
+
+.schedule-header-row,
+.schedule-row {
+  display: grid;
+  grid-template-columns: 70px repeat(5, minmax(0, 1fr));
+}
+
+.schedule-header-row {
+  background: linear-gradient(90deg, #050816, #020617);
+  border-bottom: 1px solid #111827;
+}
+
+.schedule-day-col,
+.schedule-time-col {
+  padding: 8px 10px;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9ca3af;
+}
+
+.schedule-row:nth-child(odd) {
+  background: #020617;
+}
+
+.schedule-row:nth-child(even) {
+  background: #020819;
+}
+
+.schedule-cell {
+  border-left: 1px solid #111827;
+  min-height: 32px;
+}
+
+/* AI explanation */
+
+.muted {
+  color: #9ca3af;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* Responsive */
+
+@media (max-width: 900px) {
+  .planner-row-top {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .planner-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+}

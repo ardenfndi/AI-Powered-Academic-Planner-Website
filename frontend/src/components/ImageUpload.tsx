@@ -14,7 +14,7 @@ type ParsedFromImage = {
   }[];
 };
 
-// AI gün string → DayOfWeek numarası
+// Convert a day name to DayOfWeek
 function dayNameToNumber(name: string): DayOfWeek | null {
   switch (name.toLowerCase()) {
     case "sunday":
@@ -68,7 +68,7 @@ export default function ImageUpload() {
 
       const data: ParsedFromImage = await res.json();
 
-      // Ekrana düz okunabilir metin
+      // Show readable text
       setText(
         data.plainText ||
           data.slots
@@ -81,7 +81,7 @@ export default function ImageUpload() {
             .join(", "),
       );
 
-      // Store'a otomatik ekle
+      // Add to store automatically
       for (const slot of data.slots) {
         const dayNumber = dayNameToNumber(slot.dayOfWeek);
         if (dayNumber === null) continue;
@@ -90,7 +90,7 @@ export default function ImageUpload() {
 
         addSlotLocal({
           courseId: course.id,
-          dayOfWeek: dayNumber, // ✔ TS artık ağlamıyor
+          dayOfWeek: dayNumber, 
           start: slot.start,
           end: slot.end,
           room: slot.room ?? null,
@@ -109,14 +109,14 @@ export default function ImageUpload() {
         marginTop: "24px",
         padding: "16px",
         borderRadius: "12px",
-        background: "#020617",
-        border: "1px solid #1f2937",
-        color: "white",
+        background: "var(--color-panel-end)",
+        border: "1px solid var(--color-border)",
+        color: "var(--color-text)",
         fontSize: "13px",
       }}
     >
       <div style={{ marginBottom: "8px", fontWeight: 600 }}>
-        Fotoğraftan Ders Okuma (Beta)
+        Fotoğraf tanımlı ders okuma (Beta)
       </div>
 
       <input
@@ -126,7 +126,7 @@ export default function ImageUpload() {
         disabled={loading}
       />
 
-      {loading && <p style={{ marginTop: "8px" }}>Yükleniyor, bekle aga...</p>}
+      {loading && <p style={{ marginTop: "8px" }}>Loading...</p>}
 
       {error && (
         <p style={{ marginTop: "8px", color: "#fca5a5" }}>{error}</p>

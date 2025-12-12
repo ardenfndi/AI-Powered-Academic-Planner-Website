@@ -3,7 +3,7 @@ import { prisma } from "./prisma";
 
 export const slots = Router();
 
-// Slot ekle
+// Create a slot
 slots.post("/", async (req, res) => {
   try {
     const { courseId, dayOfWeek, startTime, endTime, room } = req.body;
@@ -31,7 +31,7 @@ slots.post("/", async (req, res) => {
   }
 });
 
-// Slotları listele (isteğe bağlı courseId filtresiyle)
+// List slots, optionally filtered by courseId
 slots.get("/", async (req, res) => {
   try {
     const { courseId } = req.query as { courseId?: string };

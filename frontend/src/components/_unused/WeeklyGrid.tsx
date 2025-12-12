@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import type { PlacedItem, DayOfWeek } from "../store/usePlanner";
 
-const DAYS_TR = ["Paz","Pts","Sal","Çar","Per","Cum","Cts"];
+const DAYS_TR = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
 const toMin = (t: string) => {
   const [h, m] = t.split(":").map(s => Number(s.trim()));
@@ -10,16 +10,16 @@ const toMin = (t: string) => {
 const floorTo = (x: number, step: number) => Math.floor(x / step) * step;
 const ceilTo  = (x: number, step: number) => Math.ceil(x / step) * step;
 
-// Sabitler: CSS ile eşleşiyor
-const ROW_H = 32;     // her zaman satır yüksekliği
-const HEADER_H = 36;  // gün başlığı yüksekliği
+// Constants: must match CSS
+const ROW_H = 32;     // row height per time slot
+const HEADER_H = 36;  // day header height
 
 type Props = {
   items: PlacedItem[];
   stepMin?: number; // 30
 };
 
-/** Aynı gün çakışanları lane'lere böler. */
+/** Splits overlapping items on the same day into lanes. */
 function assignLanes(items: PlacedItem[]) {
   const byDay: Record<number, PlacedItem[]> = {0:[],1:[],2:[],3:[],4:[],5:[],6:[]};
   items.forEach(it => byDay[it.dayOfWeek].push(it));
@@ -48,7 +48,7 @@ function assignLanes(items: PlacedItem[]) {
 export default function WeeklyGrid({ items, stepMin = 30 }: Props) {
   const hasItems = items?.length > 0;
 
-  // Dinamik zaman aralığı
+  // Dynamic time range
   const { startMin, endMin } = useMemo(() => {
     if (!hasItems) return { startMin: 0, endMin: 0 };
     let minS = Infinity, maxE = -Infinity;
@@ -71,12 +71,12 @@ export default function WeeklyGrid({ items, stepMin = 30 }: Props) {
 
   const { withLane, laneCounts } = useMemo(() => assignLanes(items), [items]);
 
-  // Kart yüksekliği: header + satırlar
+  // Card height: header + time rows
   const gridHeight = HEADER_H + rows * ROW_H;
 
   return (
     <div className="card grid-wrap" style={{ position: "relative", height: hasItems ? gridHeight : undefined }}>
-      {/* GRID İSKELETİ */}
+      {/* GRID SKELETON */}
       <div
         className="grid"
         style={{
@@ -93,7 +93,7 @@ export default function WeeklyGrid({ items, stepMin = 30 }: Props) {
           </div>
         ))}
 
-        {/* Satırlar (sadece item varsa) */}
+        {/* Time rows (only if there are items) */}
         {hasItems && rows > 0 && Array.from({ length: rows }).map((_, i) => {
           const minutes = startMin + i * stepMin;
           const h = String(Math.floor(minutes / 60)).padStart(2, "0");
@@ -128,7 +128,7 @@ export default function WeeklyGrid({ items, stepMin = 30 }: Props) {
 
             const day = item.dayOfWeek as DayOfWeek;
             const lanesForDay = laneCounts[day];
-            const colWidth = 100 / 8; // time + 7 gün
+            const colWidth = 100 / 8; // time + 7 days
             const baseLeftPct = (day + 1) * colWidth;
             const laneWidthPct = colWidth / lanesForDay;
             const leftPct = baseLeftPct + lane * laneWidthPct;
