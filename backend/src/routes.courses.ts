@@ -3,6 +3,11 @@ import { prisma } from "./prisma";
 
 export const courses = Router();
 
+type CreateCourseBody = {
+  name?: string;
+  code?: string;
+};
+
 // List all courses
 courses.get("/", async (_req, res) => {
   try {
@@ -19,14 +24,17 @@ courses.get("/", async (_req, res) => {
 // Create a course
 courses.post("/", async (req, res) => {
   try {
-    const { code, name } = req.body;
+    const { name, code } = req.body as CreateCourseBody;
 
-    if (!code || !name) {
-      return res.status(400).json({ error: "code and name are required" });
+    if (!name || !code) {
+      return res.status(400).json({ error: "name and code are required" });
     }
 
-    const c = await prisma.course.create({
-      data: { code, name },
+    const c = await prisma.course.upsert({
+      where: { code },
+      update: { name },
+      create: { name, code },
+      include: { slots: true },
     });
 
     res.status(201).json(c);

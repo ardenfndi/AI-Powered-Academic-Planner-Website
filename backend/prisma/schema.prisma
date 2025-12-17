@@ -9,7 +9,7 @@ datasource db {
 
 model Course {
   id    String       @id @default(cuid())
-  code  String
+  code  String       @unique
   name  String
   slots CourseSlot[]
 }
@@ -22,4 +22,47 @@ model CourseSlot {
   startTime String
   endTime   String
   room      String?
+
+  @@unique([courseId, dayOfWeek, startTime, endTime, room], name: "courseId_dayOfWeek_startTime_endTime_room")
+}
+
+model SolveRun {
+  id        String   @id @default(cuid())
+  createdAt DateTime @default(now())
+  payload   String
+}
+
+model SavedSchedule {
+  id        String              @id @default(cuid())
+  createdAt DateTime            @default(now())
+  userId    String?
+  user      User?               @relation(fields: [userId], references: [id])
+  explanation String?
+  payload   String              // JSON string of saved schedule (items + metadata)
+  items     SavedScheduleItem[]
+}
+
+model SavedScheduleItem {
+  id         String @id @default(cuid())
+  schedule   SavedSchedule @relation(fields: [scheduleId], references: [id])
+  scheduleId String
+  courseCode String?
+  courseName String?
+  section    String?
+  dayOfWeek  Int
+  startTime  String
+  endTime    String
+  room       String?
+}
+
+model User {
+  id        String          @id @default(cuid())
+  name      String
+  email     String          @unique
+  school    String?
+  department String?
+  password  String
+  createdAt DateTime        @default(now())
+
+  schedules SavedSchedule[]
 }

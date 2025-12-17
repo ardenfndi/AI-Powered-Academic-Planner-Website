@@ -1,5 +1,5 @@
 import "./Sidebar.css";
-import { useUser } from "../store/useUser";
+import { usePreferences } from "../store/usePreferences";
 import { t } from "../i18n";
 
 export type NavKey =
@@ -9,7 +9,9 @@ export type NavKey =
   | "help"
   | "grades"
   | "profile"
-  | "settings";
+  | "settings"
+  | "login"
+  | "register";
 
 type SidebarProps = {
   active: NavKey;
@@ -47,7 +49,7 @@ const IconGrades = () => (
 );
 
 export default function Sidebar({ active, onSelect }: SidebarProps) {
-  const language = useUser((s) => s.user.language);
+  const language = usePreferences((s) => s.language);
   return (
     <aside className="sidebar">
       <div>

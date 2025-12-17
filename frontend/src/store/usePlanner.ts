@@ -38,6 +38,20 @@ const toMin = (hhmm: string) => {
   return h * 60 + m;
 };
 const norm = (s: string) => s.trim().toLowerCase();
+const padTime = (val: string) => {
+  const parts = val.split(":").map((p) => p.trim());
+  const h = parts[0] ?? "00";
+  const m = parts[1] ?? "00";
+  const hh = String(Number(h)).padStart(2, "0");
+  const mm = String(Number(m)).padStart(2, "0");
+  return `${hh}:${mm}`;
+};
+const normalizeDay = (d: number): DayOfWeek => {
+  // Convert 0-6 (Sun-Sat) to 1-7 (Mon-Sun) expected by UI; clamp within 0..6 first
+  const clamped = Math.max(0, Math.min(6, Math.trunc(d)));
+  const asUi = ((clamped + 6) % 7) + 1; // shift so Monday=1
+  return asUi as DayOfWeek;
+};
 
 /* ---------- Backend API ---------- */
 
@@ -47,7 +61,84 @@ type BackendSolveResponse = {
   reasoning: string;
 };
 
+const API_BASE = "http://localhost:4000";
+
 const api = {
+  fetchAll: async (): Promise<{ courses: Course[]; slots: Slot[] }> => {
+    const res = await fetch(`${API_BASE}/api/courses`);
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Backend error ${res.status}: ${text}`);
+    }
+    const data: Array<Course & { slots: any[] }> = await res.json();
+    const courses: Course[] = data.map((c) => ({
+      id: String(c.id),
+      name: c.name,
+    }));
+    const slots: Slot[] = data.flatMap((c) =>
+      (c.slots || []).map((s) => ({
+        id: String(s.id),
+        courseId: String(s.courseId),
+        dayOfWeek: s.dayOfWeek as DayOfWeek,
+        start: s.startTime,
+        end: s.endTime,
+        room: s.room ?? null,
+      })),
+    );
+    return { courses, slots };
+  },
+
+  addCourse: async (name: string): Promise<Course> => {
+    const res = await fetch(`${API_BASE}/api/courses`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, code: name }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Backend error ${res.status}: ${text}`);
+    }
+    const c = await res.json();
+    return { id: String(c.id), name: c.name };
+  },
+
+  addSlot: async (slot: Omit<Slot, "id">): Promise<Slot> => {
+    const res = await fetch(`${API_BASE}/api/slots`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        courseId: slot.courseId,
+        dayOfWeek: slot.dayOfWeek,
+        startTime: slot.start,
+        endTime: slot.end,
+        room: slot.room ?? undefined,
+      }),
+    });
+    if (!res.ok) {
+      const text = await res.text();
+      throw new Error(`Backend error ${res.status}: ${text}`);
+    }
+    const s = await res.json();
+    return {
+      id: String(s.id),
+      courseId: String(s.courseId),
+      dayOfWeek: s.dayOfWeek,
+      start: s.startTime,
+      end: s.endTime,
+      room: s.room ?? null,
+    };
+  },
+
+  deleteSlot: async (id: string): Promise<void> => {
+    const res = await fetch(`${API_BASE}/api/slots/${id}`, {
+      method: "DELETE",
+    });
+    if (!res.ok && res.status !== 204) {
+      const text = await res.text();
+      throw new Error(`Backend error ${res.status}: ${text}`);
+    }
+  },
+
   solve: async (courses: Course[], slots: Slot[]): Promise<SolveResponse> => {
     if (courses.length === 0 || slots.length === 0) {
       return { placed: [], reasoning: "No courses or slots provided." };
@@ -70,7 +161,7 @@ const api = {
       preferences: {},
     };
 
-    const res = await fetch("http://localhost:4000/api/solve", {
+    const res = await fetch(`${API_BASE}/api/solve`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
@@ -83,27 +174,26 @@ const api = {
 
     const data: BackendSolveResponse = await res.json();
 
-    // Backend: items = {courseId, slotId}
-    // UI: placed = slot with course name
     const raw = data.items.map((it): PlacedItem | null => {
-      const slot = slots.find((s) => s.id === it.slotId);
-      const course = courses.find((c) => c.id === it.courseId);
+      const slot = slots.find((s) => s.id === String(it.slotId));
+      const course = courses.find((c) => c.id === String(it.courseId));
       if (!slot || !course) return null;
 
       return {
         courseId: course.id,
         courseName: course.name,
-        dayOfWeek: slot.dayOfWeek,
-        start: slot.start,
-        end: slot.end,
+        dayOfWeek: normalizeDay(slot.dayOfWeek),
+        start: padTime(slot.start),
+        end: padTime(slot.end),
         room: slot.room ?? null,
       };
     });
 
-    // Type guard for filtering nulls
-    const placed: PlacedItem[] = raw.filter(
-      (x): x is PlacedItem => x !== null
-    );
+    const placed: PlacedItem[] = raw.filter((x): x is PlacedItem => x !== null);
+
+    // Debug visibility for development
+    console.log("[solve] api response", data);
+    console.log("[solve] mapped placed", placed);
 
     return { placed, reasoning: data.reasoning };
   },
@@ -120,12 +210,13 @@ type State = {
 };
 
 type Actions = {
-  addCourse: (name: string) => void;
-  addCourseAndReturn: (name: string) => Course;
-  addSlotLocal: (slot: Omit<Slot, "id">) => void;
-  removeSlot: (id: string) => void;
+  addCourse: (name: string) => Promise<void>;
+  addCourseAndReturn: (name: string) => Promise<Course>;
+  addSlotLocal: (slot: Omit<Slot, "id">) => Promise<void>;
+  removeSlot: (id: string) => Promise<void>;
   solveNow: () => Promise<void>;
   reset: () => void;
+  init: () => Promise<void>;
 };
 
 let cid = 0;
@@ -139,31 +230,41 @@ export const usePlanner = create<State & Actions>((set, get) => ({
   error: undefined,
   reasoning: undefined,
 
-  addCourse: (name) => {
+  init: async () => {
+    try {
+      const data = await api.fetchAll();
+      cid = Math.max(0, ...data.courses.map((c) => Number(c.id) || 0));
+      sid = Math.max(0, ...data.slots.map((s) => Number(s.id) || 0));
+      set({
+        courses: data.courses,
+        slots: data.slots,
+        error: undefined,
+      });
+    } catch (err: any) {
+      set({ error: err?.message || "Failed to load data" });
+    }
+  },
+
+  addCourse: async (name) => {
     const n = name.trim();
     if (!n) return;
     const exists = get().courses.find((c) => norm(c.name) === norm(n));
     if (exists) return;
-    const newCourse: Course = { id: `c_${++cid}`, name: n };
-    set((s) => ({ courses: [...s.courses, newCourse], error: undefined }));
+    const course = await api.addCourse(n);
+    set((s) => ({ courses: [...s.courses, course], error: undefined }));
   },
 
   addCourseAndReturn: (name) => {
-    const n = name.trim();
-    if (!n) {
-      const fallback: Course = { id: `c_${++cid}`, name: "Untitled" };
-      set((s) => ({ courses: [...s.courses, fallback], error: undefined }));
-      return fallback;
-    }
+    const n = name.trim() || "Untitled";
     const found = get().courses.find((c) => norm(c.name) === norm(n));
-    if (found) return found;
-
-    const newCourse: Course = { id: `c_${++cid}`, name: n };
-    set((s) => ({ courses: [...s.courses, newCourse], error: undefined }));
-    return newCourse;
+    if (found) return Promise.resolve(found);
+    return api.addCourse(n).then((course) => {
+      set((s) => ({ courses: [...s.courses, course], error: undefined }));
+      return course;
+    });
   },
 
-  addSlotLocal: (sNoId) => {
+  addSlotLocal: async (sNoId) => {
     if (toMin(sNoId.end) <= toMin(sNoId.start)) {
       set({ error: "End time must be after start time." });
       return;
@@ -175,17 +276,23 @@ export const usePlanner = create<State & Actions>((set, get) => ({
         x.start === sNoId.start &&
         x.end === sNoId.end
     );
-    if (dup) {
-      set({ error: "This section already exists." });
-      return;
-    }
+    if (dup) return;
 
-    const newSlot: Slot = { ...sNoId, id: `s_${++sid}` };
-    set((s) => ({ slots: [...s.slots, newSlot], error: undefined }));
+    try {
+      const created = await api.addSlot(sNoId);
+      set((s) => ({ slots: [...s.slots, created], error: undefined }));
+    } catch (err: any) {
+      set({ error: err?.message || "Failed to add slot" });
+    }
   },
 
-  removeSlot: (id) => {
-    set((s) => ({ slots: s.slots.filter((sl) => sl.id !== id) }));
+  removeSlot: async (id) => {
+    try {
+      await api.deleteSlot(id);
+      set((s) => ({ slots: s.slots.filter((sl) => sl.id !== id) }));
+    } catch (err: any) {
+      set({ error: err?.message || "Failed to remove slot" });
+    }
   },
 
   solveNow: async () => {

@@ -6,18 +6,40 @@ export const slots = Router();
 // Create a slot
 slots.post("/", async (req, res) => {
   try {
-    const { courseId, dayOfWeek, startTime, endTime, room } = req.body;
+    const { courseId, dayOfWeek, startTime, endTime, room } = req.body as {
+      courseId?: string;
+      dayOfWeek?: number;
+      startTime?: string;
+      endTime?: string;
+      room?: string | null;
+    };
+    const dayNum = Number(dayOfWeek);
 
-    if (!courseId || dayOfWeek === undefined || !startTime || !endTime) {
+    if (!courseId || Number.isNaN(dayNum) || !startTime || !endTime) {
       return res.status(400).json({
         error: "courseId, dayOfWeek, startTime, endTime are required",
       });
     }
 
-    const s = await prisma.courseSlot.create({
-      data: {
+    const course = await prisma.course.findUnique({ where: { id: courseId } });
+    if (!course) {
+      return res.status(400).json({ error: "Invalid courseId" });
+    }
+
+    const s = await prisma.courseSlot.upsert({
+      where: {
+        courseId_dayOfWeek_startTime_endTime_room: {
+          courseId,
+          dayOfWeek: dayNum,
+          startTime,
+          endTime,
+          room: room ?? null,
+        },
+      },
+      update: {},
+      create: {
         courseId,
-        dayOfWeek,
+        dayOfWeek: dayNum,
         startTime,
         endTime,
         room,
@@ -42,5 +64,16 @@ slots.get("/", async (req, res) => {
   } catch (err) {
     console.error("GET /api/slots error:", err);
     res.status(500).json({ error: "Failed to fetch slots" });
+  }
+});
+
+slots.delete("/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    await prisma.courseSlot.delete({ where: { id } });
+    res.status(204).end();
+  } catch (err) {
+    console.error("DELETE /api/slots/:id error:", err);
+    res.status(500).json({ error: "Failed to delete slot" });
   }
 });

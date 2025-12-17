@@ -81,16 +81,23 @@ export default function ImageUpload() {
             .join(", "),
       );
 
-      // Add to store automatically
+      // Add courses first (if provided)
+      if (Array.isArray(data.courses)) {
+        for (const c of data.courses) {
+          await addCourseAndReturn(c.name || "Untitled");
+        }
+      }
+
+      // Add slots and ensure they reference an existing course
       for (const slot of data.slots) {
         const dayNumber = dayNameToNumber(slot.dayOfWeek);
         if (dayNumber === null) continue;
 
-        const course = addCourseAndReturn(slot.courseName || "Untitled");
+        const course = await addCourseAndReturn(slot.courseName || "Untitled");
 
-        addSlotLocal({
+        await addSlotLocal({
           courseId: course.id,
-          dayOfWeek: dayNumber, 
+          dayOfWeek: dayNumber,
           start: slot.start,
           end: slot.end,
           room: slot.room ?? null,

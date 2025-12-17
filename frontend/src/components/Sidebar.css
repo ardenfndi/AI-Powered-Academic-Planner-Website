@@ -52,7 +52,7 @@
   border-radius: 10px;
   border: none;
   background: transparent;
-  color: #cbd5f5;
+  color: var(--color-text);
   font-size: 14px;
   cursor: pointer;
   text-align: left;
@@ -62,15 +62,6 @@
 .sidebar-item:hover {
   background: rgba(255, 255, 255, 0.06);
   color: #ffffff;
-}
-
-body[data-theme="light"] .sidebar-item {
-  color: #475569;
-}
-
-body[data-theme="light"] .sidebar-item:hover {
-  background: rgba(37, 99, 235, 0.08);
-  color: #0f172a;
 }
 
 .sidebar-item.active {
@@ -90,7 +81,7 @@ body[data-theme="light"] .sidebar-item:hover {
 .sidebar-item svg {
   flex-shrink: 0;
   fill: currentColor;
-  transition: fill 0.25s;
+  transition: color 0.25s;
 }
 
 .sidebar-footer {

@@ -1,0 +1,6 @@
+-- CreateTable
+CREATE TABLE "SolveRun" (
+    "id" TEXT NOT NULL PRIMARY KEY,
+    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "payload" TEXT NOT NULL
+);

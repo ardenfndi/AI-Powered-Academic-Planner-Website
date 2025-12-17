@@ -3,6 +3,7 @@ import cors from "cors";
 import path from "path";
 import { solveRouter } from "./routes.solve";
 import { imageRouter } from "./routes.image";
+import { schedulesRouter } from "./routes.schedules";
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.get("/", (_req, res) => {
 
 app.use("/api/solve", solveRouter);
 app.use("/api/parse-image", imageRouter);
+app.use("/api/schedules", schedulesRouter);
 
 app.get("/health", (_req, res) => {
   res.json({ ok: true, ts: new Date().toISOString() });

@@ -9,14 +9,17 @@
   border-radius: 16px;
   border: 1px solid var(--color-border);
   box-shadow: var(--color-shadow-strong);
-  padding: 16px;
+  padding: 16px 14px 14px;
   z-index: 50;
+  display: grid;
+  gap: 10px;
 }
 
 .user-menu-header {
   display: flex;
   gap: 10px;
-  margin-bottom: 12px;
+  padding: 4px 6px 8px 6px;
+  border-bottom: 1px solid var(--color-grid);
 }
 
 .user-menu-avatar {
@@ -47,37 +50,41 @@
   color: var(--color-muted);
 }
 
-.user-menu-primary {
-  width: 100%;
-  border: none;
-  border-radius: 999px;
-  padding: 8px 12px;
-  margin-bottom: 12px;
-  background: linear-gradient(
-    135deg,
-    var(--color-accent-start),
-    var(--color-accent-end)
-  );
-  color: white;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
+.user-menu-block {
+  padding: 8px 6px;
+  border: 1px solid var(--color-grid);
+  border-radius: 12px;
+  background: var(--color-panel-start);
+  display: grid;
+  gap: 6px;
 }
 
-.user-menu-section {
-  border-top: 1px solid var(--color-grid);
-  padding-top: 10px;
-  margin-top: 10px;
+.user-menu-label {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-muted);
+}
+
+.user-menu-list {
+  display: grid;
+  gap: 4px;
 }
 
 .user-menu-item {
   font-size: 13px;
-  padding: 6px 0;
+  padding: 10px 10px;
   cursor: pointer;
+  border-radius: 10px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--color-text);
+  text-align: left;
 }
 
 .user-menu-item:hover {
-  color: var(--color-accent-start);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-grid);
 }
 
 .user-menu-row {
@@ -85,17 +92,20 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 4px 0;
+  padding: 10px 10px;
   border: none;
   background: transparent;
-  color: inherit;
+  color: var(--color-text);
+  border-radius: 10px;
+  border: 1px solid transparent;
   width: 100%;
   text-align: left;
   cursor: pointer;
 }
 
 .user-menu-row:hover {
-  color: var(--color-accent-start);
+  background: rgba(255, 255, 255, 0.04);
+  border-color: var(--color-grid);
 }
 
 .user-menu-toggle {
@@ -107,18 +117,26 @@
   width: 100%;
   border: none;
   border-radius: 10px;
-  padding: 8px 12px;
-  margin-top: 12px;
-  background: var(--color-panel-start);
-  color: #f87171;
+  padding: 10px 12px;
+  margin-top: 2px;
+  background: rgba(248, 113, 113, 0.12);
+  color: #fca5a5;
   font-size: 13px;
   cursor: pointer;
+  transition: 0.15s ease;
+  border: 1px solid rgba(248, 113, 113, 0.32);
+}
+
+.user-menu-logout:hover {
+  background: rgba(248, 113, 113, 0.18);
+  border-color: rgba(248, 113, 113, 0.5);
 }
 
 .user-menu-footer {
-  margin-top: 8px;
+  margin-top: 2px;
   font-size: 11px;
   color: var(--color-muted);
   display: flex;
   justify-content: space-between;
+  padding: 6px 2px 0;
 }

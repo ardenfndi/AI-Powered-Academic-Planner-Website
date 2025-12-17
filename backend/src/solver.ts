@@ -65,7 +65,7 @@ function dayName(d: number): string {
 }
 
 // "CS101-A" -> "CS101"
-// "CS101 – Intro to Programming" -> "CS101"
+// "CS101 Intro to Programming" -> "CS101"
 function baseCourseName(name: string): string {
   const dashIdx = name.indexOf("-");
   if (dashIdx > 0) {
@@ -208,7 +208,7 @@ export function solveSchedule(
     const c = courseById.get(s.courseId);
     const courseLabel = c ? c.name : s.courseName;
     lines.push(
-      `- ${courseLabel}: ${dayName(s.dayOfWeek)} ${s.startTime}ë"${s.endTime}${
+      `- ${courseLabel}: ${dayName(s.dayOfWeek)} ${s.startTime} - ${s.endTime}${
         s.room ? ` in ${s.room}` : ""
       }`
     );

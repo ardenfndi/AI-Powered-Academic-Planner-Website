@@ -151,6 +151,12 @@ function SavedSchedulesPage({
 
           {!loading && !error && hasSchedule && (
             <>
+              {schedule?.explanation && (
+                <div className="muted" style={{ marginBottom: "12px" }}>
+                  {schedule.explanation}
+                </div>
+              )}
+
               <WeeklySchedule
                 blocks={blocks}
                 startHour={bounds.startHour}
@@ -349,166 +355,14 @@ export default function App() {
   const authUser = useAuth((s) => s.user ?? null);
   const loadMe = useAuth((s) => s.loadMe);
 
-  const [page, setPage] = useState<NavKey>(() => pathToNav(window.location.pathname || "/planner"));
-  const [selectedSavedId, setSelectedSavedId] = useState<string | null>(() => {
-    const st = window.history.state as any;
-    return st?.selectedId ?? null;
-  });
-  const [savedSchedule, setSavedSchedule] = useState<SavedSchedule | null>(null);
-  const [savedLoading, setSavedLoading] = useState(false);
-  const [savedError, setSavedError] = useState<string | null>(null);
-  const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
-  const [saveMessage, setSaveMessage] = useState<string>("");
-
-  const handleNavigate = useCallback(
-    (nav: NavKey, state?: { selectedId?: string | null }) => {
-      const path = NAV_TO_PATH[nav] ?? "/planner";
-      window.history.pushState(state ?? null, "", path);
-      setPage(nav);
-      setSelectedSavedId(state?.selectedId ?? null);
-    },
-    [],
-  );
-
-  useEffect(() => {
-    const onPop = () => {
-      const nav = pathToNav(window.location.pathname || "/planner");
-      const st = window.history.state as any;
-      setPage(nav);
-      setSelectedSavedId(st?.selectedId ?? null);
-    };
-    window.addEventListener("popstate", onPop);
-    return () => window.removeEventListener("popstate", onPop);
-  }, []);
-
-  const fetchLatestScheduleId = useCallback(async (): Promise<string | null> => {
-    const res = await fetch(`${API_BASE}/api/schedules`, { credentials: "include" });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Failed to fetch schedules");
-    }
-    const list = await res.json();
-    if (!Array.isArray(list) || list.length === 0) return null;
-    return String(list[0].id);
-  }, []);
-
-  const fetchScheduleById = useCallback(async (id: string): Promise<SavedSchedule> => {
-    const res = await fetch(`${API_BASE}/api/schedules/${id}`, { credentials: "include" });
-    if (!res.ok) {
-      const text = await res.text();
-      throw new Error(text || "Failed to fetch saved schedule");
-    }
-    const data = await res.json();
-    return {
-      id: String(data.id),
-      explanation: data.explanation ?? null,
-      items: Array.isArray(data.items)
-        ? data.items.map((it: any, idx: number): SavedScheduleItem => ({
-            id: it.id ? String(it.id) : `${data.id}-${idx}`,
-            courseName: it.courseName ?? it.courseCode ?? "Course",
-            dayOfWeek: Number(it.dayOfWeek ?? 1),
-            startTime: it.startTime,
-            endTime: it.endTime,
-            room: it.room ?? null,
-          }))
-        : [],
-    };
-  }, []);
-
-  const loadSavedSchedule = useCallback(
-    async (targetId?: string | null) => {
-      setSavedLoading(true);
-      setSavedError(null);
-      try {
-        const id = targetId || (await fetchLatestScheduleId());
-        if (!id) {
-          setSavedSchedule(null);
-          setSavedError(null);
-          setSelectedSavedId(null);
-          return;
-        }
-        const schedule = await fetchScheduleById(id);
-        setSavedSchedule(schedule);
-        setSelectedSavedId(id);
-      } catch (err: any) {
-        setSavedSchedule(null);
-        setSavedError(err?.message || "Failed to load saved schedule");
-      } finally {
-        setSavedLoading(false);
-      }
-    },
-    [fetchLatestScheduleId, fetchScheduleById],
-  );
+  const [page, setPage] = useState<NavKey>("planner");
 
   useEffect(() => {
     void loadMe();
   }, [loadMe]);
 
-  useEffect(() => {
-    if (page !== "saved") return;
-    void loadSavedSchedule(selectedSavedId);
-  }, [page, selectedSavedId, loadSavedSchedule]);
-
-  useEffect(() => {
-    if (saveStatus === "idle") return;
-    setSaveStatus("idle");
-    setSaveMessage("");
-  }, [placed, saveStatus]);
-
   async function handleGenerateSchedule() {
     await solveNow();
-  }
-
-  async function handleSaveSchedule() {
-    if (!placed.length || saveStatus === "saving") return;
-    setSaveStatus("saving");
-    setSaveMessage("Saving...");
-    try {
-      const payload = {
-        items: placed.map((p) => ({
-          courseName: p.courseName,
-          dayOfWeek: p.dayOfWeek,
-          startTime: p.start,
-          endTime: p.end,
-          room: p.room ?? null,
-        })),
-        explanation: reasoning ?? null,
-      };
-
-      const res = await fetch(`${API_BASE}/api/schedules`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-        credentials: "include",
-      });
-
-      if (!res.ok) {
-        const text = await res.text();
-        throw new Error(text || "Failed to save schedule");
-      }
-
-      const data = await res.json().catch(() => ({}));
-      const createdId =
-        data?.id ??
-        data?.scheduleId ??
-        data?.savedScheduleId ??
-        data?.data?.id ??
-        null;
-      if (!createdId) {
-        throw new Error("Missing schedule id from response");
-      }
-
-      setSaveStatus("saved");
-      setSaveMessage("Saved");
-      setSelectedSavedId(String(createdId));
-
-      setTimeout(() => {
-        handleNavigate("saved", { selectedId: String(createdId) });
-      }, 400);
-    } catch (err: any) {
-      setSaveStatus("error");
-      setSaveMessage(err?.message || "Failed to save");
-    }
   }
 
   type GradeRow = {
@@ -741,28 +595,14 @@ export default function App() {
                 Generated timetable will appear in this weekly grid.
               </p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "12px", color: saveStatus === "error" ? "#fca5a5" : "#cbd5e1" }}>
-                {saveStatus === "saving" && "Saving..."}
-                {saveStatus === "saved" && "Saved"}
-                {saveStatus === "error" && saveMessage}
-                {saveStatus === "idle" && ""}
-              </span>
-              <button
-                onClick={handleSaveSchedule}
-                disabled={loading || placed.length === 0 || saveStatus === "saving"}
-                className="primary-btn"
-              >
-                {saveStatus === "saving" ? "Saving..." : "Save schedule"}
-              </button>
-              <button
-                onClick={handleGenerateSchedule}
-                disabled={loading}
-                className="primary-btn"
-              >
-                {loading ? "Calculating..." : t(language, "button.generateSchedule")}
-              </button>
-            </div>
+
+            <button
+              onClick={handleGenerateSchedule}
+              disabled={loading}
+              className="primary-btn"
+            >
+              {loading ? "Calculating..." : t(language, "button.generateSchedule")}
+            </button>
           </div>
 
           <div className="panel-body">
@@ -988,13 +828,7 @@ export default function App() {
         </section>
       </main>
     ) : page === "saved" ? (
-      <SavedSchedulesPage
-        language={language}
-        schedule={savedSchedule}
-        loading={savedLoading}
-        error={savedError}
-        onReload={() => loadSavedSchedule(selectedSavedId)}
-      />
+      <SavedSchedulesPage language={language} />
     ) : page === "admin" ? (
       <AdminPanelPage language={language} />
     ) : page === "profile" ? (
@@ -1006,8 +840,9 @@ export default function App() {
     );
 
   return (
-    <Layout activePage={page} onNavigate={handleNavigate}>
+    <Layout activePage={page} onNavigate={setPage}>
       {content}
     </Layout>
   );
 }
+

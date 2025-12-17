@@ -2,18 +2,36 @@ import path from "path";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
+import session from "express-session";
+import cookieParser from "cookie-parser";
 
 import { courses } from "./routes.courses";
 import { slots } from "./routes.slots";
 import { solveRouter } from "./routes.solve";
 import { imageRouter } from "./routes.image";
+import { schedulesRouter } from "./routes.schedules";
+import { authRouter } from "./routes.auth";
 
 dotenv.config();
 
 const app = express();
 
-app.use(cors());
+app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
+
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || "dev-secret",
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    },
+  }),
+);
 
 // Serve public assets
 const publicDir = path.join(__dirname, "..", "public");
@@ -29,6 +47,8 @@ app.use("/api/courses", courses);
 app.use("/api/slots", slots);
 app.use("/api/solve", solveRouter);
 app.use("/api/parse-image", imageRouter);
+app.use("/api/schedules", schedulesRouter);
+app.use("/api/auth", authRouter);
 
 app.get("/health", (_req, res) => {
   res.json({

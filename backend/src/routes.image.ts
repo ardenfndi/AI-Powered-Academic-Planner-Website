@@ -1,6 +1,7 @@
 import { Router } from "express";
 import multer from "multer";
 import { ai } from "./client.openai";
+import { prisma } from "./prisma";
 
 const upload = multer({ storage: multer.memoryStorage() });
 
@@ -84,7 +85,106 @@ Use English day names like Monday, Tuesday, Wednesday, Thursday, Friday.
       parsed = content;
     }
 
-    return res.json(parsed);
+    // Persist to DB with dedupe (course by code/name, slot by composite)
+    const courses = Array.isArray(parsed.courses) ? parsed.courses : [];
+    const slots = Array.isArray(parsed.slots) ? parsed.slots : [];
+
+    // Upsert courses first
+    const courseIdByName = new Map<string, string>();
+    for (const c of courses) {
+      if (!c?.name) continue;
+      const upserted = await prisma.course.upsert({
+        where: { code: c.name },
+        update: { name: c.name },
+        create: { code: c.name, name: c.name },
+      });
+      courseIdByName.set(c.name.trim().toLowerCase(), upserted.id);
+    }
+
+    // Helper to map day name to number
+    const dayNameToNumber = (name: string): number | null => {
+      switch (name?.toLowerCase()) {
+        case "sunday":
+          return 0;
+        case "monday":
+          return 1;
+        case "tuesday":
+          return 2;
+        case "wednesday":
+          return 3;
+        case "thursday":
+          return 4;
+        case "friday":
+          return 5;
+        case "saturday":
+          return 6;
+        default:
+          return null;
+      }
+    };
+
+    let created = 0;
+    let skipped = 0;
+
+    for (const s of slots) {
+      const day = dayNameToNumber(s.dayOfWeek);
+      if (
+        !s ||
+        !s.courseName ||
+        day === null ||
+        !s.start ||
+        !s.end
+      ) {
+        skipped += 1;
+        continue;
+      }
+
+      // ensure course exists
+      const key = s.courseName.trim().toLowerCase();
+      let courseId = courseIdByName.get(key);
+      if (!courseId) {
+        const upserted = await prisma.course.upsert({
+          where: { code: s.courseName },
+          update: { name: s.courseName },
+          create: { code: s.courseName, name: s.courseName },
+        });
+        courseId = upserted.id;
+        courseIdByName.set(key, courseId);
+      }
+
+      try {
+        await prisma.courseSlot.upsert({
+          where: {
+            courseId_dayOfWeek_startTime_endTime_room: {
+              courseId,
+              dayOfWeek: day,
+              startTime: s.start,
+              endTime: s.end,
+              room: s.room ?? null,
+            },
+          },
+          update: {},
+          create: {
+            courseId,
+            dayOfWeek: day,
+            startTime: s.start,
+            endTime: s.end,
+            room: s.room ?? null,
+          },
+        });
+        created += 1;
+      } catch {
+        skipped += 1;
+      }
+    }
+
+    return res.json({
+      plainText: parsed.plainText ?? "",
+      courses,
+      slots,
+      created,
+      skipped,
+    });
   } catch (err: any) {
     console.error("POST /api/parse-image error:", err);
     return res.status(500).json({

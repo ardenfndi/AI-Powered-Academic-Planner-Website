@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { usePlanner } from "../store/usePlanner";
-import { useUser } from "../store/useUser";
+import { usePreferences } from "../store/usePreferences";
 import { t } from "../i18n";
 import type { DayOfWeek } from "../store/usePlanner";
 
@@ -26,7 +26,7 @@ function dayNameToNumber(name: string): DayOfWeek {
 export default function Builder() {
   const addCourseAndReturn = usePlanner((s) => s.addCourseAndReturn);
   const addSlotLocal = usePlanner((s) => s.addSlotLocal);
-  const language = useUser((s) => s.user.language);
+  const language = usePreferences((s) => s.language);
 
   const [course, setCourse] = useState("");
   const [day, setDay] = useState("Monday");
@@ -36,14 +36,21 @@ export default function Builder() {
   const [endMin, setEndMin] = useState("00");
   const [room, setRoom] = useState("");
 
-  function handleAdd() {
+  const hours = Array.from({ length: 24 }).map((_, i) => (
+    <option key={i}>{i.toString().padStart(2, "0")}</option>
+  ));
+  const minutes = Array.from({ length: 60 }).map((_, i) => (
+    <option key={i}>{i.toString().padStart(2, "0")}</option>
+  ));
+
+  async function handleAdd() {
     const trimmed = course.trim();
     if (!trimmed) return;
 
-    const c = addCourseAndReturn(trimmed);
+    const c = await addCourseAndReturn(trimmed);
     const dayNum = dayNameToNumber(day);
 
-    addSlotLocal({
+    await addSlotLocal({
       courseId: c.id,
       dayOfWeek: dayNum,
       start: `${startHour}:${startMin}`,
@@ -56,65 +63,78 @@ export default function Builder() {
 
   return (
     <div className="builder-container">
-      <div className="builder-grid">
+      <div className="builder-form">
+        {/* ROW 1 – COURSE NAME */}
         <input
           type="text"
+          className="builder-course"
           placeholder="Course name (e.g., CS302)"
           value={course}
           onChange={(e) => setCourse(e.target.value)}
         />
 
-        <select value={day} onChange={(e) => setDay(e.target.value)}>
-          <option>Monday</option>
-          <option>Tuesday</option>
-          <option>Wednesday</option>
-          <option>Thursday</option>
-          <option>Friday</option>
-          <option>Saturday</option>
-          <option>Sunday</option>
-        </select>
-
-        <div style={{ display: "flex", gap: "4px" }}>
-          <select value={startHour} onChange={(e) => setStartHour(e.target.value)}>
-            {Array.from({ length: 24 }).map((_, i) => (
-              <option key={i}>{i.toString().padStart(2, "0")}</option>
-            ))}
+        {/* ROW 2 – DAY + TIME */}
+        <div className="builder-row">
+          <select
+            className="builder-day"
+            value={day}
+            onChange={(e) => setDay(e.target.value)}
+          >
+            <option>Monday</option>
+            <option>Tuesday</option>
+            <option>Wednesday</option>
+            <option>Thursday</option>
+            <option>Friday</option>
           </select>
 
-          <select value={startMin} onChange={(e) => setStartMin(e.target.value)}>
-            {Array.from({ length: 60 }).map((_, i) => (
-              <option key={i}>{i.toString().padStart(2, "0")}</option>
-            ))}
+          <select
+            className="time-select"
+            value={startHour}
+            onChange={(e) => setStartHour(e.target.value)}
+          >
+            {hours}
+          </select>
+
+          <select
+            className="time-select"
+            value={startMin}
+            onChange={(e) => setStartMin(e.target.value)}
+          >
+            {minutes}
+          </select>
+
+          <select
+            className="time-select"
+            value={endHour}
+            onChange={(e) => setEndHour(e.target.value)}
+          >
+            {hours}
+          </select>
+
+          <select
+            className="time-select"
+            value={endMin}
+            onChange={(e) => setEndMin(e.target.value)}
+          >
+            {minutes}
           </select>
         </div>
 
-        <div style={{ display: "flex", gap: "4px" }}>
-          <select value={endHour} onChange={(e) => setEndHour(e.target.value)}>
-            {Array.from({ length: 24 }).map((_, i) => (
-              <option key={i}>{i.toString().padStart(2, "0")}</option>
-            ))}
-          </select>
+        <input
+          type="text"
+          placeholder="Room"
+          value={room}
+          onChange={(e) => setRoom(e.target.value)}
+          className="builder-room"
+          style={{ width: "100%" }}
+        />
+      </div>
 
-          <select value={endMin} onChange={(e) => setEndMin(e.target.value)}>
-            {Array.from({ length: 60 }).map((_, i) => (
-              <option key={i}>{i.toString().padStart(2, "0")}</option>
-            ))}
-          </select>
-        </div>
-
-        <button className="add-btn" onClick={handleAdd}>
+      <div className="builder-actions">
+        <button className="primary-btn add-btn" onClick={handleAdd}>
           {t(language, "button.addCourseSlot")}
         </button>
       </div>
-
-      <input
-        type="text"
-        placeholder="Room (optional)"
-        value={room}
-        onChange={(e) => setRoom(e.target.value)}
-        className="builder-room"
-        style={{ marginTop: "10px", width: "100%" }}
-      />
     </div>
   );
 }
