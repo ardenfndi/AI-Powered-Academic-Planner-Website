@@ -19,7 +19,7 @@ type AuthState = {
 
 export const useAuth = create<AuthState>((set) => ({
   user: undefined,
-  loading: false,
+  loading: true,
 
   async loadMe() {
     set({ loading: true });

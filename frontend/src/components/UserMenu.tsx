@@ -17,15 +17,17 @@ export default function UserMenu({ onNavigate }: Props) {
   const language = usePreferences((s) => s.language);
   const theme = usePreferences((s) => s.theme);
 
-  const initials = user?.name ? user.name[0]?.toUpperCase() : "U";
+  const initials = (user?.name || user?.email || "U")[0]?.toUpperCase() || "U";
+  const displayName = user?.name || "Guest";
+  const displayEmail = user?.email || "Not signed in";
 
   return (
     <div className="user-menu" onMouseLeave={closeMenu}>
       <div className="user-menu-header">
         <div className="user-menu-avatar">{initials || "U"}</div>
         <div className="user-menu-info">
-          <div className="user-menu-name">{user.name}</div>
-          <div className="user-menu-email">{user.email}</div>
+          <div className="user-menu-name">{displayName}</div>
+          <div className="user-menu-email">{displayEmail}</div>
         </div>
       </div>
 

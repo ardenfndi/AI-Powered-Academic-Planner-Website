@@ -306,7 +306,7 @@ export const usePlanner = create<State & Actions>((set, get) => ({
       return;
     }
 
-    set({ loading: true, error: undefined });
+    set({ loading: true, error: undefined, placed: [], reasoning: undefined });
     try {
       const res = await api.solve(courses, slots);
       set({

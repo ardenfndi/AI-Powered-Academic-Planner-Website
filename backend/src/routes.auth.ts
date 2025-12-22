@@ -1,6 +1,7 @@
 import express from "express";
 import bcrypt from "bcrypt";
 import { prisma } from "./prisma";
+import { AuthedRequest, clearAuthToken, getUserIdFromRequest, issueAuthToken } from "./auth";
 
 const router = express.Router();
 
@@ -23,8 +24,7 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({ data: { name, email, password: hashed, school: school ?? null, department: department ?? null } });
 
-    // start session
-    (req.session as any).userId = user.id;
+    issueAuthToken(res, user.id);
 
     res.json({ user: safeUser(user) });
   } catch (err) {
@@ -45,7 +45,7 @@ router.post("/login", async (req, res) => {
     const ok = await bcrypt.compare(password, user.password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
 
-    (req.session as any).userId = user.id;
+    issueAuthToken(res, user.id);
     res.json({ user: safeUser(user) });
   } catch (err) {
     console.error(err);
@@ -55,45 +55,18 @@ router.post("/login", async (req, res) => {
 
 // Logout
 router.post("/logout", (req, res) => {
-  const destroy = () =>
-    req.session?.destroy?.((err) => {
-      if (err) {
-        console.error("Failed to destroy session", err);
-        return res.status(500).json({ ok: false });
-      }
-      res.clearCookie("connect.sid", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-      });
-      res.json({ ok: true });
-    });
-
-  // If no session exists, still clear the cookie to invalidate auth
-  if (!(req.session as any)?.userId) {
-    res.clearCookie("connect.sid", {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: process.env.NODE_ENV === "production",
-    });
-    return res.json({ ok: true });
-  }
-
-  destroy();
+  clearAuthToken(res);
+  return res.json({ ok: true });
 });
 
 // Me
 router.get("/me", async (req, res) => {
   try {
-    const userId = (req.session as any)?.userId;
+    const userId = getUserIdFromRequest(req as AuthedRequest);
     if (!userId) return res.status(401).json({ user: null });
     const user = await prisma.user.findUnique({ where: { id: userId } });
     if (!user) {
-      res.clearCookie("connect.sid", {
-        httpOnly: true,
-        sameSite: "lax",
-        secure: process.env.NODE_ENV === "production",
-      });
+      clearAuthToken(res);
       return res.status(401).json({ user: null });
     }
     return res.json({ user: safeUser(user) });

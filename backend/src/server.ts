@@ -2,7 +2,6 @@ import path from "path";
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
-import session from "express-session";
 import cookieParser from "cookie-parser";
 
 import { courses } from "./routes.courses";
@@ -19,19 +18,6 @@ const app = express();
 app.use(cors({ origin: process.env.FRONTEND_ORIGIN || true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
-
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET || "dev-secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
-    },
-  }),
-);
 
 // Serve public assets
 const publicDir = path.join(__dirname, "..", "public");

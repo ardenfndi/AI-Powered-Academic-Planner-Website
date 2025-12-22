@@ -1,15 +1,18 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "./App.css";
 import Layout from "./components/Layout";
 import Builder from "./components/Builder";
 import ImageUpload from "./components/ImageUpload";
 import WeeklySchedule from "./components/WeeklySchedule";
+import ProtectedRoute from "./components/ProtectedRoute";
 import { timeToMinutes, minutesToTime } from "./components/ScheduleGrid";
 import type { NavKey } from "./components/Sidebar";
 import { usePlanner } from "./store/usePlanner";
 import { usePreferences } from "./store/usePreferences";
 import { type AuthUser } from "./store/useUser";
 import { useAuth } from "./hooks/useAuth";
+import LoginPage from "./pages/Login";
+import RegisterPage from "./pages/Register";
 import { t } from "./i18n";
 
 const API_BASE = "http://localhost:4000";
@@ -345,8 +348,10 @@ export default function App() {
   const loading = usePlanner((s) => s.loading);
   const error = usePlanner((s) => s.error);
   const solveNow = usePlanner((s) => s.solveNow);
+  const resetPlanner = usePlanner((s) => s.reset);
   const language = usePreferences((s) => s.language);
   const authUser = useAuth((s) => s.user ?? null);
+  const authLoading = useAuth((s) => s.loading);
   const loadMe = useAuth((s) => s.loadMe);
 
   const [page, setPage] = useState<NavKey>(() => pathToNav(window.location.pathname || "/planner"));
@@ -359,6 +364,21 @@ export default function App() {
   const [savedError, setSavedError] = useState<string | null>(null);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState<string>("");
+  const lastUserIdRef = useRef<string | null>(null);
+
+  // Reset planner and saved state whenever the authenticated user changes
+  useEffect(() => {
+    const currentId = authUser?.id ?? null;
+    if (currentId !== lastUserIdRef.current) {
+      resetPlanner();
+      setSavedSchedule(null);
+      setSavedError(null);
+      setSelectedSavedId(null);
+      setSaveStatus("idle");
+      setSaveMessage("");
+    }
+    lastUserIdRef.current = currentId;
+  }, [authUser, resetPlanner]);
 
   const handleNavigate = useCallback(
     (nav: NavKey, state?: { selectedId?: string | null }) => {
@@ -383,6 +403,9 @@ export default function App() {
 
   const fetchLatestScheduleId = useCallback(async (): Promise<string | null> => {
     const res = await fetch(`${API_BASE}/api/schedules`, { credentials: "include" });
+    if (res.status === 401) {
+      throw new Error("Unauthorized");
+    }
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || "Failed to fetch schedules");
@@ -394,6 +417,9 @@ export default function App() {
 
   const fetchScheduleById = useCallback(async (id: string): Promise<SavedSchedule> => {
     const res = await fetch(`${API_BASE}/api/schedules/${id}`, { credentials: "include" });
+    if (res.status === 401) {
+      throw new Error("Unauthorized");
+    }
     if (!res.ok) {
       const text = await res.text();
       throw new Error(text || "Failed to fetch saved schedule");
@@ -432,12 +458,16 @@ export default function App() {
         setSelectedSavedId(id);
       } catch (err: any) {
         setSavedSchedule(null);
-        setSavedError(err?.message || "Failed to load saved schedule");
+        const message = err?.message || "Failed to load saved schedule";
+        setSavedError(message);
+        if (message === "Unauthorized") {
+          handleNavigate("login");
+        }
       } finally {
         setSavedLoading(false);
       }
     },
-    [fetchLatestScheduleId, fetchScheduleById],
+    [fetchLatestScheduleId, fetchScheduleById, handleNavigate],
   );
 
   useEffect(() => {
@@ -445,9 +475,9 @@ export default function App() {
   }, [loadMe]);
 
   useEffect(() => {
-    if (page !== "saved") return;
+    if (page !== "saved" || !authUser) return;
     void loadSavedSchedule(selectedSavedId);
-  }, [page, selectedSavedId, loadSavedSchedule]);
+  }, [page, selectedSavedId, loadSavedSchedule, authUser]);
 
   useEffect(() => {
     if (saveStatus === "idle") return;
@@ -668,154 +698,160 @@ export default function App() {
 
   const content =
     page === "planner" ? (
-      <main className="planner-main">
-        <header className="planner-header">
-          <div>
-            <h1 className="planner-title">{t(language, "page.plannerTitle")}</h1>
-            <p className="planner-subtitle">
-              Build and generate your weekly schedule with AI.
-            </p>
-          </div>
-          <span className="planner-badge">v1.0 - Student project</span>
-        </header>
-
-        <div className="planner-row-top">
-          <section className="panel-card panel-primary">
-            <div className="panel-header">
-              <div>
-                <h2 className="panel-title">Course &amp; Slot Builder</h2>
-                <p className="panel-subtitle">
-                  Add your courses and possible time slots. The solver will pick
-                  the best non-conflicting combination.
-                </p>
-              </div>
-            </div>
-
-            <div className="panel-body">
-              <Builder />
-            </div>
-          </section>
-
-          <section className="panel-card panel-secondary">
-            <div className="panel-header">
-              <div>
-                <h2 className="panel-title">Entered courses</h2>
-                <p className="panel-subtitle">
-                  Preview of what you&apos;ve added and import from image.
-                </p>
-              </div>
-            </div>
-
-            <div className="panel-body">
-              <div
-                style={{
-                  marginBottom: "10px",
-                  fontSize: "13px",
-                  color: "var(--color-muted)",
-                }}
-              >
-                You haven&apos;t added anything yet. Add courses and time slots
-                using the builder on the left, or read them from a photo below.
-              </div>
-
-              <div
-                style={{
-                  marginTop: "8px",
-                  padding: "10px 12px",
-                  borderRadius: "12px",
-                  background: "var(--color-panel-end)",
-                  border: "1px solid var(--color-border)",
-                }}
-              >
-                <ImageUpload />
-              </div>
-            </div>
-          </section>
-        </div>
-
-        <section className="panel-card panel-wide">
-          <div className="panel-header">
+      <ProtectedRoute
+        isAuthenticated={Boolean(authUser)}
+        loading={authLoading}
+        onRedirect={() => handleNavigate("login")}
+      >
+        <main className="planner-main">
+          <header className="planner-header">
             <div>
-              <h2 className="panel-title">AI Generated Schedule</h2>
-              <p className="panel-subtitle">
-                Generated timetable will appear in this weekly grid.
+              <h1 className="planner-title">{t(language, "page.plannerTitle")}</h1>
+              <p className="planner-subtitle">
+                Build and generate your weekly schedule with AI.
               </p>
             </div>
-            <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "12px", color: saveStatus === "error" ? "#fca5a5" : "#cbd5e1" }}>
-                {saveStatus === "saving" && "Saving..."}
-                {saveStatus === "saved" && "Saved"}
-                {saveStatus === "error" && saveMessage}
-                {saveStatus === "idle" && ""}
-              </span>
-              <button
-                onClick={handleSaveSchedule}
-                disabled={loading || placed.length === 0 || saveStatus === "saving"}
-                className="primary-btn"
-              >
-                {saveStatus === "saving" ? "Saving..." : "Save schedule"}
-              </button>
-              <button
-                onClick={handleGenerateSchedule}
-                disabled={loading}
-                className="primary-btn"
-              >
-                {loading ? "Calculating..." : t(language, "button.generateSchedule")}
-              </button>
-            </div>
+            <span className="planner-badge">v1.0 - Student project</span>
+          </header>
+
+          <div className="planner-row-top">
+            <section className="panel-card panel-primary">
+              <div className="panel-header">
+                <div>
+                  <h2 className="panel-title">Course &amp; Slot Builder</h2>
+                  <p className="panel-subtitle">
+                    Add your courses and possible time slots. The solver will pick
+                    the best non-conflicting combination.
+                  </p>
+                </div>
+              </div>
+
+              <div className="panel-body">
+                <Builder />
+              </div>
+            </section>
+
+            <section className="panel-card panel-secondary">
+              <div className="panel-header">
+                <div>
+                  <h2 className="panel-title">Entered courses</h2>
+                  <p className="panel-subtitle">
+                    Preview of what you&apos;ve added and import from image.
+                  </p>
+                </div>
+              </div>
+
+              <div className="panel-body">
+                <div
+                  style={{
+                    marginBottom: "10px",
+                    fontSize: "13px",
+                    color: "var(--color-muted)",
+                  }}
+                >
+                  You haven&apos;t added anything yet. Add courses and time slots
+                  using the builder on the left, or read them from a photo below.
+                </div>
+
+                <div
+                  style={{
+                    marginTop: "8px",
+                    padding: "10px 12px",
+                    borderRadius: "12px",
+                    background: "var(--color-panel-end)",
+                    border: "1px solid var(--color-border)",
+                  }}
+                >
+                  <ImageUpload />
+                </div>
+              </div>
+            </section>
           </div>
 
-          <div className="panel-body">
-            {placed.length === 0 && !loading && (
-              <div className="muted" style={{ marginBottom: "8px" }}>
-                No schedule generated.
-              </div>
-            )}
-            {placed.length > 0 ? (
-              <WeeklySchedule
-                blocks={scheduleBlocks}
-                startHour={startHourForGrid}
-                endHour={endHourForGrid}
-              />
-            ) : (
-              !loading &&
-              !error && (
-                <p className="muted" style={{ marginTop: "10px" }}>
-                  No schedule yet. Add some courses and click{" "}
-                  <b>{t(language, "button.generateSchedule")}</b>.
+          <section className="panel-card panel-wide">
+            <div className="panel-header">
+              <div>
+                <h2 className="panel-title">AI Generated Schedule</h2>
+                <p className="panel-subtitle">
+                  Generated timetable will appear in this weekly grid.
                 </p>
-              )
-            )}
-            {placed.length > 0 && (
-              <div className="slots-table-wrapper" style={{ marginTop: 16 }}>
-                <table className="slots-table">
-                  <thead>
-                    <tr>
-                      <th>Course</th>
-                      <th>Day</th>
-                      <th>Start</th>
-                      <th>End</th>
-                      <th>Room</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {placed.map((it) => (
-                      <tr key={`${it.courseName}-${it.dayOfWeek}-${it.start}-${it.end}`}>
-                        <td><strong>{it.courseName}</strong></td>
-                        <td>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][(it.dayOfWeek ?? 1) - 1] || "Mon"}</td>
-                        <td>{it.start}</td>
-                        <td>{it.end}</td>
-                        <td className="muted">{it.room || "Room TBD"}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
               </div>
-            )}
-          </div>
-        </section>
+              <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                <span style={{ fontSize: "12px", color: saveStatus === "error" ? "#fca5a5" : "#cbd5e1" }}>
+                  {saveStatus === "saving" && "Saving..."}
+                  {saveStatus === "saved" && "Saved"}
+                  {saveStatus === "error" && saveMessage}
+                  {saveStatus === "idle" && ""}
+                </span>
+                <button
+                  onClick={handleSaveSchedule}
+                  disabled={loading || placed.length === 0 || saveStatus === "saving"}
+                  className="primary-btn"
+                >
+                  {saveStatus === "saving" ? "Saving..." : "Save schedule"}
+                </button>
+                <button
+                  onClick={handleGenerateSchedule}
+                  disabled={loading}
+                  className="primary-btn"
+                >
+                  {loading ? "Calculating..." : t(language, "button.generateSchedule")}
+                </button>
+              </div>
+            </div>
 
-      </main>
+            <div className="panel-body">
+              {placed.length === 0 && !loading && (
+                <div className="muted" style={{ marginBottom: "8px" }}>
+                  No schedule generated.
+                </div>
+              )}
+              {placed.length > 0 ? (
+                <WeeklySchedule
+                  blocks={scheduleBlocks}
+                  startHour={startHourForGrid}
+                  endHour={endHourForGrid}
+                />
+              ) : (
+                !loading &&
+                !error && (
+                  <p className="muted" style={{ marginTop: "10px" }}>
+                    No schedule yet. Add some courses and click{" "}
+                    <b>{t(language, "button.generateSchedule")}</b>.
+                  </p>
+                )
+              )}
+              {placed.length > 0 && (
+                <div className="slots-table-wrapper" style={{ marginTop: 16 }}>
+                  <table className="slots-table">
+                    <thead>
+                      <tr>
+                        <th>Course</th>
+                        <th>Day</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Room</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {placed.map((it) => (
+                        <tr key={`${it.courseName}-${it.dayOfWeek}-${it.start}-${it.end}`}>
+                          <td><strong>{it.courseName}</strong></td>
+                          <td>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][(it.dayOfWeek ?? 1) - 1] || "Mon"}</td>
+                          <td>{it.start}</td>
+                          <td>{it.end}</td>
+                          <td className="muted">{it.room || "Room TBD"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </div>
+          </section>
+
+        </main>
+      </ProtectedRoute>
     ) : page === "grades" ? (
       <main className="planner-main">
         <header className="planner-header">
@@ -988,19 +1024,35 @@ export default function App() {
         </section>
       </main>
     ) : page === "saved" ? (
-      <SavedSchedulesPage
-        language={language}
-        schedule={savedSchedule}
-        loading={savedLoading}
-        error={savedError}
-        onReload={() => loadSavedSchedule(selectedSavedId)}
-      />
+      <ProtectedRoute
+        isAuthenticated={Boolean(authUser)}
+        loading={authLoading}
+        onRedirect={() => handleNavigate("login")}
+      >
+        <SavedSchedulesPage
+          language={language}
+          schedule={savedSchedule}
+          loading={savedLoading}
+          error={savedError}
+          onReload={() => loadSavedSchedule(selectedSavedId)}
+        />
+      </ProtectedRoute>
     ) : page === "admin" ? (
       <AdminPanelPage language={language} />
     ) : page === "profile" ? (
       <ProfilePage language={language} user={authUser} />
     ) : page === "settings" ? (
       <AccountSettingsPage language={language} />
+    ) : page === "login" ? (
+      <LoginPage
+        onLogin={() => handleNavigate("planner")}
+        onSwitchToRegister={() => handleNavigate("register")}
+      />
+    ) : page === "register" ? (
+      <RegisterPage
+        onRegister={() => handleNavigate("planner")}
+        onSwitchToLogin={() => handleNavigate("login")}
+      />
     ) : (
       <HelpPage language={language} />
     );
