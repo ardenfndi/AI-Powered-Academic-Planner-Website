@@ -1,6 +1,3 @@
-/* =========================================
-   GLOBAL
-========================================= */
 :root {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
     "Segoe UI", sans-serif;
@@ -61,10 +58,6 @@ body {
   min-height: 100vh;
 }
 
-/* =========================================
-   MAIN PLANNER LAYOUT
-========================================= */
-
 .planner-main {
   flex: 1;
   padding: 24px 32px;
@@ -102,10 +95,6 @@ body {
   border: 1px solid var(--color-border);
   background: var(--color-badge-bg);
 }
-
-/* =========================================
-   PANELS
-========================================= */
 
 .planner-row-top {
   display: grid;
@@ -147,10 +136,6 @@ body {
   color: var(--color-muted);
   font-size: 12px;
 }
-
-/* =========================================
-   SCHEDULE GRID
-========================================= */
 
 .schedule-grid {
   margin-top: 6px;
@@ -290,7 +275,7 @@ body {
   position: relative;
   border-left: 1px solid var(--color-grid);
   height: 100%;
-  padding: 6px 8px; /* inner padding for event cards */
+  padding: 6px 8px;
   box-sizing: border-box;
 }
 
@@ -303,7 +288,7 @@ body {
 }
 
 .schedule-day-body .sched-block + .sched-block {
-  margin-top: 6px; /* visual separation when blocks flow (not absolute) */
+  margin-top: 6px; 
 }
 
 .schedule-line {
@@ -352,10 +337,6 @@ body {
   margin-top: 2px;
 }
 
-/* =========================================
-   BUTTONS
-========================================= */
-
 .primary-btn {
   border-radius: 999px;
   border: none;
@@ -402,10 +383,6 @@ body {
   background: rgba(0,0,0,0.02);
 }
 
-/* =========================================
-   FILE INPUT
-========================================= */
-
 .planner-main input[type="file"] {
   font-size: 12px;
   color: var(--color-text);
@@ -435,13 +412,10 @@ body {
   filter: brightness(0.95);
 }
 
-/* Saved schedules page (single-column) */
 .saved-schedules-panel, .saved-panel {
-  display: block; /* single-column layout */
+  display: block;
   padding: 12px 0 0 0;
 }
-
-/* removed left sidebar - run cards list deleted */
 
 .saved-right, .single-column-right {
   width: 100%;
@@ -449,16 +423,11 @@ body {
   overflow: visible;
   max-height: none;
 }
-.summary-meta { font-size:13px; color:var(--color-muted); margin-top:6px; } /* summary card removed from page */
+.summary-meta { font-size:13px; color:var(--color-muted); margin-top:6px; } 
 .slots-table { width:100%; border-collapse:collapse; margin-top:12px; }
 .slots-table thead th { text-align:left; padding:10px; font-size:13px; border-bottom:1px solid var(--table-border); }
 .slots-table tbody td { padding:10px; border-bottom:1px solid var(--table-border); }
 .slots-table tbody tr:hover { background: rgba(0,0,0,0.02); }
-
-
-/* =========================================
-   FORM ELEMENTS (GENEL)
-========================================= */
 
 .planner-main select,
 .planner-main input[type="text"],
@@ -480,10 +449,6 @@ body {
   border-color: var(--color-accent-start);
   box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.5);
 }
-
-/* =========================================
-   BUILDER UI
-========================================= */
 
 .builder-container input[type="text"],
 .builder-container input[type="number"],
@@ -540,7 +505,7 @@ body {
 }
 
 .builder-course,
-.builder-room {
+.builder-room {""
   width: 100%;
 }
 

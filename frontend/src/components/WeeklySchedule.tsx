@@ -7,7 +7,7 @@ export type ScheduleBlock = {
   id: string;
   day: Day;
   start: string; // "HH:MM"
-  end: string; // "HH:MM"
+  end: string;   // "HH:MM"
   code: string;
   subtitle?: string;
   accent?: "purple" | "orange" | "blue" | "pink";
@@ -32,9 +32,7 @@ const parseTime = (time: string) => {
 const roundToNearest30 = (minutes: number) => Math.round(minutes / 30) * 30;
 
 const formatMinutes = (minutes: number) => {
-  const h = Math.floor(minutes / 60)
-    .toString()
-    .padStart(2, "0");
+  const h = Math.floor(minutes / 60).toString().padStart(2, "0");
   const m = (minutes % 60).toString().padStart(2, "0");
   return `${h}:${m}`;
 };
@@ -50,12 +48,13 @@ export default function WeeklySchedule(props: {
   blocks: ScheduleBlock[];
   startHour?: number;
   endHour?: number;
-  nowTime?: string;
 }) {
   const startHour = props.startHour ?? 9;
   const endHour = props.endHour ?? 18;
+
   const baseMinutes = startHour * 60;
   const endMinutes = endHour * 60;
+
   const halfHourCount = Math.max(1, (endHour - startHour) * 2);
   const gridHeight = 52 + halfHourCount * 40;
 
@@ -101,15 +100,6 @@ export default function WeeklySchedule(props: {
       .filter(Boolean) as PreparedBlock[];
   }, [props.blocks, baseMinutes, endMinutes]);
 
-  const nowMinutes = useMemo(() => {
-    if (props.nowTime) return parseTime(props.nowTime);
-    const now = new Date();
-    return now.getHours() * 60 + now.getMinutes();
-  }, [props.nowTime]);
-
-  const showNow = nowMinutes >= baseMinutes && nowMinutes <= endMinutes;
-  const nowOffset = ((nowMinutes - baseMinutes) / 30) * 40;
-
   return (
     <div className="weekly-schedule">
       <div className="schedule-frame">
@@ -127,6 +117,7 @@ export default function WeeklySchedule(props: {
             </div>
 
             <div className="corner-cell" />
+
             {DAYS.map((day, idx) => (
               <div key={day} className="day-header" style={{ gridColumn: idx + 2 }}>
                 {day}
@@ -154,7 +145,7 @@ export default function WeeklySchedule(props: {
                     gridRow: `${block.rowStart} / span ${block.rowSpan}`,
                     "--accent-base": accent.base,
                     "--accent-glow": accent.glow,
-                  }}
+                  } as React.CSSProperties}
                 >
                   <div className="block-time">
                     {block.startLabel} – {block.endLabel}
@@ -164,14 +155,6 @@ export default function WeeklySchedule(props: {
                 </div>
               );
             })}
-
-            {showNow && (
-              <div className="now-marker" style={{ top: `${52 + nowOffset}px` }}>
-                <div className="now-dot" />
-                <div className="now-label">NOW</div>
-                <div className="now-line" />
-              </div>
-            )}
           </div>
         </div>
       </div>
