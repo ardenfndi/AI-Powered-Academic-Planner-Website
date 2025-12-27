@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import * as api from "../api/auth";
+import { usePreferences } from "../store/usePreferences";
+import { t } from "../i18n";
 import type { AuthUser } from "../store/useUser";
 
 type AuthContextValue = {
@@ -38,7 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.login(email, password);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Login failed" }));
-      throw new Error(err.error || "Login failed");
+      const language = usePreferences.getState().language;
+      throw new Error(err.error || t(language, "auth.errors.loginFailed"));
     }
     const data = await res.json();
     setUser(data.user ?? null);
@@ -48,7 +51,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const res = await api.register(name, email, password, school, department);
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Register failed" }));
-      throw new Error(err.error || "Register failed");
+      const language = usePreferences.getState().language;
+      throw new Error(err.error || t(language, "auth.errors.registerFailed"));
     }
     const data = await res.json();
     setUser(data.user ?? null);

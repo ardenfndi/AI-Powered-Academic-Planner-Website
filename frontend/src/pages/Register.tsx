@@ -1,5 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { usePreferences } from "../store/usePreferences";
+import { t } from "../i18n";
 
 type Props = {
   onRegister: () => void;
@@ -10,6 +12,7 @@ const emailPattern = /\S+@\S+\.\S+/;
 
 export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
   const { register } = useAuth();
+  const language = usePreferences((s) => s.language);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -22,22 +25,22 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
     setError(null);
 
     if (!name.trim()) {
-      setError("Name is required.");
+      setError(t(language, "auth.errors.nameRequired"));
       return;
     }
 
     if (!emailPattern.test(email.trim())) {
-      setError("Enter a valid email address.");
+      setError(t(language, "auth.errors.emailInvalid"));
       return;
     }
 
     if (password.trim().length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t(language, "auth.errors.passwordLength"));
       return;
     }
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setError(t(language, "auth.errors.passwordMismatch"));
       return;
     }
 
@@ -46,7 +49,7 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
       await register(name.trim(), email.trim(), password);
       onRegister();
     } catch (err: any) {
-      setError(err?.message || "Register failed");
+      setError(err?.message || t(language, "auth.errors.registerFailed"));
     } finally {
       setLoading(false);
     }
@@ -56,8 +59,8 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
     <main className="planner-main">
       <header className="planner-header">
         <div>
-          <h1 className="planner-title">Register</h1>
-          <p className="planner-subtitle">Create an account to save schedules.</p>
+          <h1 className="planner-title">{t(language, "auth.registerTitle")}</h1>
+          <p className="planner-subtitle">{t(language, "auth.registerSubtitle")}</p>
         </div>
       </header>
 
@@ -65,20 +68,20 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
         <form onSubmit={submit} className="panel-body" style={{ display: "grid", gap: 12 }}>
           {error && <div className="muted" style={{ color: "#f87171" }}>{error}</div>}
           <input
-            placeholder="Full name"
+            placeholder={t(language, "auth.placeholder.fullName")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             required
           />
           <input
-            placeholder="Email"
+            placeholder={t(language, "auth.placeholder.email")}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
-            placeholder="Password"
+            placeholder={t(language, "auth.placeholder.password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -86,7 +89,7 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
             minLength={8}
           />
           <input
-            placeholder="Confirm password"
+            placeholder={t(language, "auth.placeholder.confirmPassword")}
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
@@ -95,10 +98,10 @@ export default function RegisterPage({ onRegister, onSwitchToLogin }: Props) {
           />
           <div style={{ display: "flex", gap: 8 }}>
             <button className="primary-btn" type="submit" disabled={loading}>
-              {loading ? "Creating..." : "Create account"}
+              {loading ? t(language, "auth.creating") : t(language, "auth.createAccount")}
             </button>
             <button className="secondary-btn" type="button" onClick={onSwitchToLogin}>
-              Sign in
+              {t(language, "auth.signIn")}
             </button>
           </div>
         </form>

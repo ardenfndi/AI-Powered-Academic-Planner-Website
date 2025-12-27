@@ -1,6 +1,5 @@
 import { useEffect, useRef } from "react";
 import UserMenu from "./UserMenu";
-import { useAuth } from "../hooks/useAuth";
 import { usePreferences } from "../store/usePreferences";
 import { t } from "../i18n";
 import type { NavKey } from "./Sidebar";
@@ -11,17 +10,17 @@ type Props = {
 };
 
 export default function Topbar({ onNavigate }: Props) {
-  const user = useAuth((s) => s.user);
+  // user info intentionally not required in topbar; remove unused local
   const language = usePreferences((s) => s.language);
   const theme = usePreferences((s) => s.theme);
   const menuOpen = usePreferences((s) => s.menuOpen);
   const toggleTheme = usePreferences((s) => s.toggleTheme);
-  const toggleLanguage = usePreferences((s) => s.toggleLanguage);
+  const setLanguage = usePreferences((s) => s.setLanguage);
   const openMenu = usePreferences((s) => s.openMenu);
   const closeMenu = usePreferences((s) => s.closeMenu);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
 
-  const avatarLabel = user?.name ? user.name[0]?.toUpperCase() : "U";
+  
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -49,16 +48,14 @@ export default function Topbar({ onNavigate }: Props) {
     <header className="topbar2">
       <div className="topbar-left">
         <div className="topbar-title">{t(language, "page.plannerTitle")}</div>
-        <div className="topbar-subtitle">
-          Build and generate your weekly schedule with AI
-        </div>
+        <div className="topbar-subtitle">{t(language, "topbar.subtitle")}</div>
       </div>
 
       <div className="topbar-right" ref={wrapperRef}>
         <div className="topbar-actions">
           <button
             type="button"
-            aria-label="Toggle theme"
+            aria-label={t(language, "user.theme")}
             className={`topbar-action-btn${theme === "dark" ? " is-active" : ""}`}
             onClick={toggleTheme}
           >
@@ -98,24 +95,29 @@ export default function Topbar({ onNavigate }: Props) {
               </svg>
             )}
           </button>
-
-          <button
-            type="button"
-            aria-label="Switch language"
-            className="topbar-action-btn"
-            onClick={toggleLanguage}
-          >
-            <div className="topbar-lang-stack">
-              <span>EN</span>
-              <span className="topbar-lang-divider" />
-              <span>TR</span>
+            <div className="lang-toggle" role="tablist" aria-label={t(language, "user.language")}> 
+              <button
+                type="button"
+                aria-pressed={language === "EN"}
+                className={`lang-btn ${language === "EN" ? "is-active" : ""}`}
+                onClick={() => setLanguage("EN")}
+              >
+                EN
+              </button>
+              <button
+                type="button"
+                aria-pressed={language === "TR"}
+                className={`lang-btn ${language === "TR" ? "is-active" : ""}`}
+                onClick={() => setLanguage("TR")}
+              >
+                TR
+              </button>
             </div>
-          </button>
 
-          <div className="topbar-avatar-wrap">
+            <div className="topbar-avatar-wrap">
             <button
               type="button"
-              aria-label="Open settings"
+              aria-label={t(language, "menu.settings")}
               className="topbar-action-btn"
               onClick={() => (menuOpen ? closeMenu() : openMenu())}
             >

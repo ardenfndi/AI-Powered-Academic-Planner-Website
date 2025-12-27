@@ -12,6 +12,7 @@ type PrefState = {
 type PrefActions = {
   toggleTheme: () => void;
   toggleLanguage: () => void;
+  setLanguage: (lang: Language) => void;
   openMenu: () => void;
   closeMenu: () => void;
 };
@@ -73,6 +74,11 @@ export const usePreferences = create<PrefState & PrefActions>((set, get) => {
       const next: Language = get().language === "EN" ? "TR" : "EN";
       const prefs = { ...get(), language: next, menuOpen: false };
       set({ language: next, menuOpen: false });
+      persist(prefs);
+    },
+    setLanguage: (lang: Language) => {
+      const prefs = { ...get(), language: lang, menuOpen: false };
+      set({ language: lang, menuOpen: false });
       persist(prefs);
     },
     openMenu: () => set({ menuOpen: true }),

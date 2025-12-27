@@ -103,6 +103,35 @@
   margin: 2px 0;
 }
 
+.lang-toggle {
+  display: inline-flex;
+  gap: 6px;
+}
+
+.lang-btn {
+  min-width: 36px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 8px;
+  border: 1px solid var(--color-border);
+  background: transparent;
+  color: var(--color-text);
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.12s ease;
+}
+
+.lang-btn:hover {
+  border-color: var(--color-border-strong);
+}
+
+.lang-btn.is-active {
+  background: linear-gradient(90deg, var(--color-accent-start), var(--color-accent-end));
+  color: white;
+  box-shadow: 0 6px 18px rgba(99, 102, 241, 0.12);
+  border-color: rgba(99, 102, 241, 0.6);
+}
+
 .avatar-circle {
   width: 32px;
   height: 32px;

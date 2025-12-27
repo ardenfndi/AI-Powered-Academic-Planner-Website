@@ -1,5 +1,7 @@
 import { create } from "zustand";
 import * as api from "../api/auth";
+import { usePreferences } from "../store/usePreferences";
+import { t } from "../i18n";
 import type { AuthUser } from "../store/useUser";
 
 type AuthState = {
@@ -38,7 +40,8 @@ export const useAuth = create<AuthState>((set) => ({
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Login failed" }));
       set({ loading: false, user: null });
-      throw new Error(err.error || "Login failed");
+      const language = usePreferences.getState().language;
+      throw new Error(err.error || t(language, "auth.errors.loginFailed"));
     }
     const data = await res.json().catch(() => ({}));
     set({ user: data.user ?? null, loading: false });
@@ -50,7 +53,8 @@ export const useAuth = create<AuthState>((set) => ({
     if (!res.ok) {
       const err = await res.json().catch(() => ({ error: "Register failed" }));
       set({ loading: false, user: null });
-      throw new Error(err.error || "Register failed");
+      const language = usePreferences.getState().language;
+      throw new Error(err.error || t(language, "auth.errors.registerFailed"));
     }
     const data = await res.json().catch(() => ({}));
     set({ user: data.user ?? null, loading: false });

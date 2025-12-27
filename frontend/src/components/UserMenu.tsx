@@ -13,13 +13,13 @@ export default function UserMenu({ onNavigate }: Props) {
   const logout = useAuth((s) => s.logout);
   const closeMenu = usePreferences((s) => s.closeMenu);
   const toggleTheme = usePreferences((s) => s.toggleTheme);
-  const toggleLanguage = usePreferences((s) => s.toggleLanguage);
+  const setLanguage = usePreferences((s) => s.setLanguage);
   const language = usePreferences((s) => s.language);
   const theme = usePreferences((s) => s.theme);
 
   const initials = (user?.name || user?.email || "U")[0]?.toUpperCase() || "U";
-  const displayName = user?.name || "Guest";
-  const displayEmail = user?.email || "Not signed in";
+  const displayName = user?.name || t(language, "user.guest");
+  const displayEmail = user?.email || t(language, "user.notSignedIn");
 
   return (
     <div className="user-menu" onMouseLeave={closeMenu}>
@@ -32,7 +32,7 @@ export default function UserMenu({ onNavigate }: Props) {
       </div>
 
       <div className="user-menu-block">
-        <div className="user-menu-label">Quick links</div>
+        <div className="user-menu-label">{t(language, "user.quickLinks")}</div>
         <div className="user-menu-list">
           <button
             className="user-menu-item"
@@ -56,18 +56,32 @@ export default function UserMenu({ onNavigate }: Props) {
       </div>
 
       <div className="user-menu-block">
-        <div className="user-menu-label">Preferences</div>
+        <div className="user-menu-label">{t(language, "user.preferences")}</div>
         <div className="user-menu-list">
           <button className="user-menu-row" onClick={toggleTheme}>
-            <span>Theme</span>
-            <span className="user-menu-toggle">
-              {theme === "dark" ? "Dark" : "Light"}
-            </span>
+            <span>{t(language, "user.theme")}</span>
+            <span className="user-menu-toggle">{theme === "dark" ? t(language, "user.dark") : t(language, "user.light")}</span>
           </button>
-          <button className="user-menu-row" onClick={toggleLanguage}>
-            <span>Language</span>
-            <span className="user-menu-toggle">{language === "EN" ? "EN" : "TR"}</span>
-          </button>
+
+          <div className="user-menu-row" style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            <span style={{ flex: 1 }}>{t(language, "user.language")}</span>
+            <div style={{ display: "flex", gap: 6 }}>
+              <button
+                className={`lang-btn ${language === "EN" ? "is-active" : ""}`}
+                onClick={() => setLanguage("EN")}
+                aria-pressed={language === "EN"}
+              >
+                EN
+              </button>
+              <button
+                className={`lang-btn ${language === "TR" ? "is-active" : ""}`}
+                onClick={() => setLanguage("TR")}
+                aria-pressed={language === "TR"}
+              >
+                TR
+              </button>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -83,8 +97,8 @@ export default function UserMenu({ onNavigate }: Props) {
       </button>
 
       <div className="user-menu-footer">
-        <span>Privacy policy</span>
-        <span>Terms of use</span>
+        <span>{t(language, "footer.privacy")}</span>
+        <span>{t(language, "footer.terms")}</span>
       </div>
     </div>
   );

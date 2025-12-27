@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { usePlanner } from "../store/usePlanner";
+import { usePreferences } from "../store/usePreferences";
+import { t } from "../i18n";
 import type { DayOfWeek } from "../store/usePlanner";
 
 type ParsedFromImage = {
@@ -37,6 +39,7 @@ function dayNameToNumber(name: string): DayOfWeek | null {
 }
 
 export default function ImageUpload() {
+  const language = usePreferences((s) => s.language);
   const [loading, setLoading] = useState(false);
   const [text, setText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -122,9 +125,9 @@ export default function ImageUpload() {
         fontSize: "13px",
       }}
     >
-      <div style={{ marginBottom: "8px", fontWeight: 600 }}>
-        Fotoğraf tanımlı ders okuma (Beta)
-      </div>
+        <div style={{ marginBottom: "8px", fontWeight: 600 }}>
+          {t(language, "image.readerTitle")}
+        </div>
 
       <input
         type="file"
@@ -133,7 +136,7 @@ export default function ImageUpload() {
         disabled={loading}
       />
 
-      {loading && <p style={{ marginTop: "8px" }}>Loading...</p>}
+      {loading && <p style={{ marginTop: "8px" }}>{t(language, "action.loading")}</p>}
 
       {error && (
         <p style={{ marginTop: "8px", color: "#fca5a5" }}>{error}</p>

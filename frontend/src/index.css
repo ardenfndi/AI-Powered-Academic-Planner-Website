@@ -26,10 +26,11 @@
 
 body.theme-light {
   color-scheme: light;
-  --color-bg: #f8fafc;
-  --color-surface: #eef2ff;
+  /* Softer, slightly off-white background to be easier on the eyes */
+  --color-bg: #f3f4f6; /* cool off-white */
+  --color-surface: #f8fafc;
   --color-panel-start: #ffffff;
-  --color-panel-end: #f8fafc;
+  --color-panel-end: #f6f7f9; /* slightly warmed off-white */
   --color-border-strong: #d0d7e2;
   --color-border: #cbd5e1;
   --color-grid: #e2e8f0;

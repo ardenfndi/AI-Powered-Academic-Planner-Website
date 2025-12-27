@@ -1,5 +1,7 @@
 import { FormEvent, useState } from "react";
 import { useAuth } from "../hooks/useAuth";
+import { usePreferences } from "../store/usePreferences";
+import { t } from "../i18n";
 
 type Props = {
   onLogin: () => void;
@@ -10,6 +12,7 @@ const emailPattern = /\S+@\S+\.\S+/;
 
 export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
   const { login } = useAuth();
+  const language = usePreferences((s) => s.language);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -20,12 +23,12 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
     setError(null);
 
     if (!emailPattern.test(email.trim())) {
-      setError("Enter a valid email address.");
+      setError(t(language, "auth.errors.emailInvalid"));
       return;
     }
 
     if (password.trim().length < 8) {
-      setError("Password must be at least 8 characters.");
+      setError(t(language, "auth.errors.passwordLength"));
       return;
     }
 
@@ -34,7 +37,7 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
       await login(email.trim(), password);
       onLogin();
     } catch (err: any) {
-      setError(err?.message || "Login failed");
+      setError(err?.message || t(language, "auth.errors.loginFailed"));
     } finally {
       setLoading(false);
     }
@@ -44,8 +47,8 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
     <main className="planner-main">
       <header className="planner-header">
         <div>
-          <h1 className="planner-title">Login</h1>
-          <p className="planner-subtitle">Sign in with your email and password.</p>
+          <h1 className="planner-title">{t(language, "auth.loginTitle")}</h1>
+          <p className="planner-subtitle">{t(language, "auth.loginSubtitle")}</p>
         </div>
       </header>
 
@@ -53,14 +56,14 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
         <form onSubmit={submit} className="panel-body" style={{ display: "grid", gap: 12 }}>
           {error && <div className="muted" style={{ color: "#f87171" }}>{error}</div>}
           <input
-            placeholder="Email"
+            placeholder={t(language, "auth.placeholder.email")}
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
-            placeholder="Password"
+            placeholder={t(language, "auth.placeholder.password")}
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
@@ -69,10 +72,10 @@ export default function LoginPage({ onLogin, onSwitchToRegister }: Props) {
           />
           <div style={{ display: "flex", gap: 8 }}>
             <button className="primary-btn" type="submit" disabled={loading}>
-              {loading ? "Signing in..." : "Sign in"}
+              {loading ? t(language, "auth.signing") : t(language, "auth.signIn")}
             </button>
             <button className="secondary-btn" type="button" onClick={onSwitchToRegister}>
-              Register
+              {t(language, "auth.createAccount")}
             </button>
           </div>
         </form>

@@ -104,7 +104,7 @@ export default function Sidebar({ active, onSelect }: SidebarProps) {
         </nav>
       </div>
 
-      <div className="sidebar-footer">v1.0 끘 Student project</div>
+      <div className="sidebar-footer">{t(language, "badge.version")}</div>
     </aside>
   );
 }

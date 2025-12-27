@@ -127,29 +127,29 @@ function SavedSchedulesPage({
             Your generated schedules will appear here when saving is enabled.
           </p>
         </div>
-        <span className="planner-badge">v1.0 - Student project</span>
+        <span className="planner-badge">{t(language, "badge.version")}</span>
       </header>
 
       <section className="panel-card panel-wide">
         <div className="panel-header">
           <div>
-            <h2 className="panel-title">Saved schedule</h2>
-            <p className="panel-subtitle">Latest saved result from the planner.</p>
-          </div>
+              <h2 className="panel-title">{t(language, "page.savedTitle")}</h2>
+              <p className="panel-subtitle">{t(language, "saved.latest")}</p>
+            </div>
           <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
             <button className="primary-btn" onClick={onReload} disabled={loading}>
-              {loading ? "Loading..." : "Reload"}
+              {loading ? t(language, "action.loading") : t(language, "saved.reload")}
             </button>
           </div>
         </div>
 
         <div className="panel-body">
-          {loading && <div className="muted">Loading saved schedule...</div>}
+          {loading && <div className="muted">{t(language, "action.loading")}</div>}
           {!loading && error && (
             <div style={{ color: "#fca5a5", marginBottom: 8, fontSize: "13px" }}>{error}</div>
           )}
           {!loading && !error && !hasSchedule && (
-            <div className="muted">No saved schedules yet. Save a schedule from the planner.</div>
+            <div className="muted">{t(language, "saved.noSchedules")}</div>
           )}
 
           {!loading && !error && hasSchedule && (
@@ -164,11 +164,11 @@ function SavedSchedulesPage({
                 <table className="slots-table">
                   <thead>
                     <tr>
-                      <th>Course</th>
-                      <th>Day</th>
-                      <th>Start</th>
-                      <th>End</th>
-                      <th>Room</th>
+                      <th>{t(language, "table.course")}</th>
+                      <th>{t(language, "table.day")}</th>
+                      <th>{t(language, "table.start")}</th>
+                      <th>{t(language, "table.end")}</th>
+                      <th>{t(language, "table.room")}</th>
                     </tr>
                   </thead>
                   <tbody>
@@ -178,7 +178,7 @@ function SavedSchedulesPage({
                         <td>{["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"][(it.dayOfWeek ?? 1) - 1] || "Mon"}</td>
                         <td>{(it.startTime ?? "").slice(0, 5)}</td>
                         <td>{(it.endTime ?? "").slice(0, 5)}</td>
-                        <td className="muted">{it.room || "Room TBD"}</td>
+                        <td className="muted">{it.room || t(language, "room.tbd")}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -198,19 +198,14 @@ function AdminPanelPage({ language }: { language: "EN" | "TR" }) {
       <header className="planner-header">
         <div>
           <h1 className="planner-title">{t(language, "page.adminTitle")}</h1>
-          <p className="planner-subtitle">
-            Manage data sources, permissions and solver settings.
-          </p>
+          <p className="planner-subtitle">{t(language, "admin.description")}</p>
         </div>
-        <span className="planner-badge">v1.0 - Student project</span>
+        <span className="planner-badge">{t(language, "badge.version")}</span>
       </header>
 
       <section className="panel-card panel-wide">
         <div className="panel-body">
-          <p className="muted">
-            Admin tools are not wired yet. Add controls here when backend
-            endpoints are ready.
-          </p>
+          <p className="muted">{t(language, "admin.notWired")}</p>
         </div>
       </section>
     </main>
@@ -225,7 +220,7 @@ function HelpPage({ language }: { language: "EN" | "TR" }) {
           <h1 className="planner-title">{t(language, "page.helpTitle")}</h1>
           <p className="planner-subtitle">Quick info and usage notes.</p>
         </div>
-        <span className="planner-badge">v1.0 - Student project</span>
+        <span className="planner-badge">{t(language, "badge.version")}</span>
       </header>
 
       <section className="panel-card panel-wide">
@@ -271,7 +266,7 @@ function HelpPage({ language }: { language: "EN" | "TR" }) {
               <h3 className="panel-title" style={{ marginBottom: "4px" }}>
                 Version
               </h3>
-              <p className="muted">v1.0 - Student project</p>
+              <p className="muted">{t(language, "badge.version")}</p>
             </div>
           </div>
         </div>
@@ -288,7 +283,7 @@ function ProfilePage({ user, language }: { user: AuthUser | null; language: "EN"
           <h1 className="planner-title">{t(language, "page.profileTitle")}</h1>
           <p className="planner-subtitle">User snapshot</p>
         </div>
-        <span className="planner-badge">v1.0 - Student project</span>
+        <span className="planner-badge">{t(language, "badge.version")}</span>
       </header>
 
       <section className="panel-card panel-wide">
@@ -323,11 +318,9 @@ function AccountSettingsPage({ language }: { language: "EN" | "TR" }) {
       <header className="planner-header">
         <div>
           <h1 className="planner-title">{t(language, "page.settingsTitle")}</h1>
-          <p className="planner-subtitle">
-            Placeholder account settings. Wire to backend when ready.
-          </p>
+          <p className="planner-subtitle">{t(language, "settings.placeholder")}</p>
         </div>
-        <span className="planner-badge">v1.0 - Student project</span>
+        <span className="planner-badge">{t(language, "badge.version")}</span>
       </header>
 
       <section className="panel-card panel-wide">
@@ -711,7 +704,7 @@ export default function App() {
                 Build and generate your weekly schedule with AI.
               </p>
             </div>
-            <span className="planner-badge">v1.0 - Student project</span>
+            <span className="planner-badge">{t(language, "badge.version")}</span>
           </header>
 
           <div className="planner-row-top">
@@ -861,7 +854,7 @@ export default function App() {
               Add grading components, weights and scores to see your status.
             </p>
           </div>
-          <span className="planner-badge">v1.0 - Student project</span>
+          <span className="planner-badge">{t(language, "badge.version")}</span>
         </header>
 
         <section className="panel-card panel-wide">
