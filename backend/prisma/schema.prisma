@@ -62,7 +62,13 @@ model User {
   school     String?
   department String?
   password   String
+  role       Role             @default(user)
   createdAt  DateTime        @default(now())
 
   schedules  SavedSchedule[]
+}
+
+enum Role {
+  user
+  admin
 }

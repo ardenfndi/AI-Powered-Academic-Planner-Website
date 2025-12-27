@@ -65,6 +65,18 @@ npm run dev
 Backend runs at:
 `http://localhost:3000`
 
+Admin demo account
+
+The backend can auto-create a demo admin on startup when you set these environment variables in `backend/.env` (for example see `backend/.env.example`):
+
+```
+ADMIN_EMAIL=ethem@gmail.com
+ADMIN_PASSWORD=12345678
+JWT_SECRET=change-me
+```
+
+The server will check for the configured `ADMIN_EMAIL` on startup and create or promote that account to role `admin` if missing. Passwords are hashed using bcrypt and JWT tokens include the user's role.
+
 ### Frontend
 
 ```bash

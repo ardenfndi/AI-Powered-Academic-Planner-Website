@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
-export type AuthedRequest = Request & { userId?: string };
+export type AuthedRequest = Request & { userId?: string; role?: string };
 
 const JWT_SECRET = process.env.JWT_SECRET || "dev-secret";
 const COOKIE_NAME = "planner_token";
@@ -14,8 +14,8 @@ const cookieOptions = {
   maxAge: ONE_WEEK_MS,
 };
 
-export function issueAuthToken(res: Response, userId: string) {
-  const token = jwt.sign({ sub: userId }, JWT_SECRET, { expiresIn: "7d" });
+export function issueAuthToken(res: Response, userId: string, role: string = "user") {
+  const token = jwt.sign({ sub: userId, role }, JWT_SECRET, { expiresIn: "7d" });
   res.cookie(COOKIE_NAME, token, cookieOptions);
   return token;
 }
@@ -35,14 +35,20 @@ export function requireAuth(req: AuthedRequest, res: Response, next: NextFunctio
   const token = extractToken(req);
   if (!token) return res.status(401).json({ error: "Unauthorized" });
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as { sub?: string };
+    const payload = jwt.verify(token, JWT_SECRET) as { sub?: string; role?: string };
     if (!payload?.sub) throw new Error("Invalid token");
     req.userId = payload.sub;
+    req.role = payload.role;
     next();
   } catch (err) {
     clearAuthToken(res);
     return res.status(401).json({ error: "Unauthorized" });
   }
+}
+
+export function requireAdmin(req: AuthedRequest, res: Response, next: NextFunction) {
+  if (req.role !== "admin") return res.status(403).json({ error: "Forbidden" });
+  next();
 }
 
 export function getUserIdFromRequest(req: AuthedRequest): string | null {

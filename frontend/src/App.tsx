@@ -193,6 +193,80 @@ function SavedSchedulesPage({
 }
 
 function AdminPanelPage({ language }: { language: "EN" | "TR" }) {
+  const user = useAuth((s) => s.user);
+  const [loading, setLoading] = useState(true);
+  const [overview, setOverview] = useState<{ usersCount: number; schedulesCount: number } | null>(null);
+  const [users, setUsers] = useState<Array<any>>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!user) return;
+    if (user.role !== "admin") return;
+
+    let cancelled = false;
+    setLoading(true);
+    Promise.all([
+      fetch(`${API_BASE}/api/admin/overview`, { credentials: "include" }).then((r) => r.json()),
+      fetch(`${API_BASE}/api/admin/users`, { credentials: "include" }).then((r) => r.json()),
+    ])
+      .then(([ov, ul]) => {
+        if (cancelled) return;
+        if (ov?.error) throw new Error(ov.error);
+        if (ul?.error) throw new Error(ul.error);
+        setOverview(ov);
+        setUsers(ul.users || []);
+      })
+      .catch((err: any) => {
+        console.error(err);
+        setError(err?.message || "Failed to load admin data");
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [user]);
+
+  if (!user) {
+    return (
+      <main className="planner-main">
+        <header className="planner-header">
+          <div>
+            <h1 className="planner-title">{t(language, "page.adminTitle")}</h1>
+            <p className="planner-subtitle">{t(language, "admin.description")}</p>
+          </div>
+        </header>
+
+        <section className="panel-card panel-wide">
+          <div className="panel-body">
+            <div className="muted">Checking authentication...</div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
+  if (user.role !== "admin") {
+    return (
+      <main className="planner-main">
+        <header className="planner-header">
+          <div>
+            <h1 className="planner-title">{t(language, "page.adminTitle")}</h1>
+            <p className="planner-subtitle">{t(language, "admin.description")}</p>
+          </div>
+        </header>
+
+        <section className="panel-card panel-wide">
+          <div className="panel-body">
+            <div style={{ color: "#fca5a5" }}>{t(language, "admin.forbidden")}</div>
+          </div>
+        </section>
+      </main>
+    );
+  }
+
   return (
     <main className="planner-main">
       <header className="planner-header">
@@ -204,8 +278,58 @@ function AdminPanelPage({ language }: { language: "EN" | "TR" }) {
       </header>
 
       <section className="panel-card panel-wide">
+        <div className="panel-header">
+          <div>
+            <h2 className="panel-title">{t(language, "admin.overview")}</h2>
+            <p className="panel-subtitle">{t(language, "admin.smallDesc")}</p>
+          </div>
+        </div>
         <div className="panel-body">
-          <p className="muted">{t(language, "admin.notWired")}</p>
+          {loading && <div className="muted">{t(language, "action.loading")}</div>}
+          {!loading && error && <div style={{ color: "#fca5a5" }}>{error}</div>}
+
+          {!loading && !error && overview && (
+            <div style={{ display: "grid", gap: 12 }}>
+              <div style={{ display: "flex", gap: 12 }}>
+                <div className="panel-card" style={{ padding: 12 }}>
+                  <div className="panel-title">{t(language, "admin.totalUsers")}</div>
+                  <div style={{ fontSize: 24 }}>{overview.usersCount}</div>
+                </div>
+                <div className="panel-card" style={{ padding: 12 }}>
+                  <div className="panel-title">{t(language, "admin.totalSchedules")}</div>
+                  <div style={{ fontSize: 24 }}>{overview.schedulesCount}</div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="panel-title">{t(language, "admin.userList")}</h3>
+                <div className="slots-table-wrapper">
+                  <table className="slots-table">
+                    <thead>
+                      <tr>
+                        <th>{t(language, "table.course") /* reuse headings */}</th>
+                        <th>Email</th>
+                        <th>{t(language, "table.start")}</th>
+                        <th>{t(language, "table.end")}</th>
+                        <th>{t(language, "table.room")}</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {users.map((u: any) => (
+                        <tr key={u.id}>
+                          <td><strong>{u.name}</strong></td>
+                          <td>{u.email}</td>
+                          <td className="muted">{new Date(u.createdAt).toLocaleString()}</td>
+                          <td>{u.role}</td>
+                          <td>{u.schedulesCount}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </section>
     </main>

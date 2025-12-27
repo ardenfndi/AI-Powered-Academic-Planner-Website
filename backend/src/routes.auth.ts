@@ -8,8 +8,8 @@ const router = express.Router();
 // Helper to sanitize user object returned to client
 function safeUser(u: any) {
   if (!u) return null;
-  const { id, name, email, school, department, createdAt } = u;
-  return { id, name, email, school: school ?? null, department: department ?? null, createdAt };
+  const { id, name, email, school, department, createdAt, role } = u;
+  return { id, name, email, school: school ?? null, department: department ?? null, createdAt, role: role ?? "user" };
 }
 
 // Register
@@ -24,7 +24,7 @@ router.post("/register", async (req, res) => {
     const hashed = await bcrypt.hash(password, 10);
     const user = await prisma.user.create({ data: { name, email, password: hashed, school: school ?? null, department: department ?? null } });
 
-    issueAuthToken(res, user.id);
+    issueAuthToken(res, user.id, (user as any).role ?? "user");
 
     res.json({ user: safeUser(user) });
   } catch (err) {
@@ -33,19 +33,31 @@ router.post("/register", async (req, res) => {
   }
 });
 
+
 // Login
 router.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
     if (!email || !password) return res.status(400).json({ error: "Missing fields" });
 
+    // Log attempts for visibility (do NOT log passwords)
+    console.log(`[auth] login attempt for ${email}`);
+    if (email === process.env.ADMIN_EMAIL) console.log("[auth] admin email login attempt");
+
     const user = await prisma.user.findUnique({ where: { email } });
-    if (!user) return res.status(401).json({ error: "Invalid credentials" });
+    if (!user) {
+      console.log(`[auth] no user found for ${email}`);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+    if (!ok) {
+      console.log(`[auth] invalid password for ${email}`);
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
 
-    issueAuthToken(res, user.id);
+    console.log(`[auth] successful login for ${email}, role=${(user as any).role ?? 'user'}`);
+    issueAuthToken(res, user.id, (user as any).role ?? "user");
     res.json({ user: safeUser(user) });
   } catch (err) {
     console.error(err);

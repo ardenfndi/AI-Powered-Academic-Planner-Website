@@ -1,5 +1,6 @@
 import "./Sidebar.css";
 import { usePreferences } from "../store/usePreferences";
+import { useAuth } from "../hooks/useAuth";
 import { t } from "../i18n";
 
 export type NavKey =
@@ -50,6 +51,7 @@ const IconGrades = () => (
 
 export default function Sidebar({ active, onSelect }: SidebarProps) {
   const language = usePreferences((s) => s.language);
+  const user = useAuth((s) => s.user);
   return (
     <aside className="sidebar">
       <div>
@@ -78,13 +80,15 @@ export default function Sidebar({ active, onSelect }: SidebarProps) {
             <span>{t(language, "sidebar.saved")}</span>
           </button>
 
-          <button
-            className={`sidebar-item ${active === "admin" ? "active" : ""}`}
-            onClick={() => onSelect("admin")}
-          >
-            <IconTools />
-            <span>{t(language, "sidebar.admin")}</span>
-          </button>
+          {user?.role === "admin" && (
+            <button
+              className={`sidebar-item ${active === "admin" ? "active" : ""}`}
+              onClick={() => onSelect("admin")}
+            >
+              <IconTools />
+              <span>{t(language, "sidebar.admin")}</span>
+            </button>
+          )}
 
           <button
             className={`sidebar-item ${active === "grades" ? "active" : ""}`}

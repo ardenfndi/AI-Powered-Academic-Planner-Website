@@ -52,6 +52,17 @@ export default function UserMenu({ onNavigate }: Props) {
           >
             {t(language, "menu.settings")}
           </button>
+          {user?.role === "admin" && (
+            <button
+              className="user-menu-item"
+              onClick={() => {
+                onNavigate("admin");
+                closeMenu();
+              }}
+            >
+              {t(language, "menu.admin")}
+            </button>
+          )}
         </div>
       </div>
 
